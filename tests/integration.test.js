@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { makeFakeCanvas, installRAF } from "./helpers/headless.js";
+import { playUntil } from "./helpers/autoplay.js";
 import { Game } from "../src/engine/game.js";
 import { CHAPTERS } from "../src/content/campaign.js";
 import { MemoryBackend } from "../src/engine/storage.js";
@@ -32,8 +33,8 @@ function tap(game, code, dt = 0.4) {
 test("game loop runs without throwing and renders frames", () => {
   const stepper = installRAF();
   const game = newGame();
-  game.startChapter("sandbox");
-  game.start(); // begins RAF loop with current scene
+  game.startChapter("prologue");
+  game.start(); // begins RAF loop with the current scene
   stepper.run(5, 16);
   game.stop();
   assert.ok(game.scenes.current, "a scene should be active");
@@ -41,20 +42,20 @@ test("game loop runs without throwing and renders frames", () => {
 
 test("sphere pickup grants Stormlight", () => {
   const game = newGame();
-  game.startChapter("sandbox");
+  game.startChapter("prologue");
   const scene = game.scenes.current;
   const sphere = scene.entities.find((e) => e.type === "sphere");
+  const before = game.player.stormlight.amount;
   scene.px = sphere.x;
   scene.py = sphere.y;
-  assert.equal(game.player.stormlight.amount, 0);
   frame(game, 0.016);
-  assert.ok(game.player.stormlight.amount > 0, "should have absorbed Stormlight");
+  assert.ok(game.player.stormlight.amount > before, "should have absorbed Stormlight");
   assert.equal(sphere._dead, true);
 });
 
 test("striking an enemy eventually kills it", () => {
   const game = newGame();
-  game.startChapter("sandbox");
+  game.startChapter("prologue");
   const scene = game.scenes.current;
   const enemy = scene.entities.find((e) => e.type === "enemy");
   // Stand just left of the enemy, facing right.
@@ -71,29 +72,51 @@ test("striking an enemy eventually kills it", () => {
   assert.equal(enemy._dead, true, "enemy should be defeated");
 });
 
-test("reaching the gate completes the chapter and the campaign", () => {
+test("a single chapter (prologue) can be played to completion", () => {
+  const game = newGame();
+  let completed = null;
+  game.onChapterComplete = (id) => {
+    completed = id;
+  };
+  game.startChapter("prologue");
+  playUntil(game, () => completed === "prologue", { budget: 2000 });
+  assert.equal(completed, "prologue", "the prologue should complete when played");
+  assert.equal(game.progress.isCompleted("prologue"), true);
+  assert.equal(game.progress.isUnlocked("kaladin"), true, "next chapter should unlock");
+});
+
+test("the full six-chapter campaign can be played start to finish", () => {
   const game = newGame();
   let campaignDone = false;
+  const completedOrder = [];
+  game.onChapterComplete = (id) => {
+    completedOrder.push(id);
+    const next = game.progress.nextChapter();
+    if (next) game.startChapter(next);
+  };
   game.onCampaignComplete = () => {
     campaignDone = true;
   };
-  game.startChapter("sandbox");
-  const scene = game.scenes.current;
-  const exit = scene.entities.find((e) => e.type === "exit");
-  // Stand on the gate and interact.
-  scene.px = exit.x;
-  scene.py = exit.y;
-  tap(game, "KeyE", 0.05);
-  assert.equal(game.progress.isCompleted("sandbox"), true);
-  assert.equal(campaignDone, true);
+
+  game.startChapter(game.chapterOrder[0]);
+  playUntil(game, () => campaignDone, { budget: 12000 });
+
+  assert.equal(campaignDone, true, "the campaign should reach its ending");
+  assert.deepEqual(
+    completedOrder,
+    ["prologue", "kaladin", "shallan", "dalinar", "tower", "finale"],
+    "every chapter should complete in order"
+  );
+  assert.equal(game.progress.isCampaignComplete(), true);
 });
 
 test("progress persists across a save/restore", () => {
   const backend = new MemoryBackend();
   const g1 = new Game({ canvas: makeFakeCanvas(), chapters: CHAPTERS, saveBackend: backend });
-  g1.progress.complete("sandbox");
+  g1.progress.complete("prologue");
   g1.persist();
   const g2 = new Game({ canvas: makeFakeCanvas(), chapters: CHAPTERS, saveBackend: backend });
   assert.equal(g2.restore(), true);
-  assert.equal(g2.progress.isCompleted("sandbox"), true);
+  assert.equal(g2.progress.isCompleted("prologue"), true);
+  assert.equal(g2.progress.isUnlocked("kaladin"), true);
 });
