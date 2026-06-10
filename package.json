@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test tests/",
     "serve": "node tools/serve.js",
-    "start": "node tools/serve.js"
+    "start": "node tools/serve.js",
+    "verify:ui": "node tools/verify-ui.mjs"
   },
   "keywords": [
     "game",
@@ -16,5 +17,8 @@
     "rpg"
   ],
   "license": "MIT",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
 }
