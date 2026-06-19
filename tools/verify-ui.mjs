@@ -1,7 +1,13 @@
 // Playwright UI smoke test: launches the real game in a headless Chromium,
 // drives it from the title screen into actual gameplay with keyboard input,
-// and verifies the canvas truly renders (non-blank pixels) with no JS errors.
-// Captures screenshots to tools/screenshots/ for manual inspection.
+// and verifies BOTH render layers work — the WebGL 3D scene (#game3d) and the
+// transparent 2D HUD/text overlay (#game) — with no JS errors. Captures
+// screenshots to tools/screenshots/ for manual inspection.
+//
+// The 3D layer is checked without reading the WebGL framebuffer (headless GL
+// won't reliably hand back its pixels): we freeze the loop and compare a
+// screenshot with #game3d shown vs hidden, so any difference can only be the
+// 3D canvas's own contribution.
 //
 // Run: node tools/verify-ui.mjs   (requires `npm i -D playwright` + chromium)
 
@@ -24,20 +30,39 @@ async function key(page, k, settle = 350) {
   await wait(settle);
 }
 
-/** Fraction of canvas pixels that differ from the very first pixel (the bg). */
-async function nonBlankFraction(page) {
+/** Fraction of the 2D HUD canvas pixels that differ from its first pixel. */
+async function hudNonBlankFraction(page) {
   return page.evaluate(() => {
     const c = document.getElementById("game");
-    const ctx = c.getContext("2d");
-    const { data } = ctx.getImageData(0, 0, c.width, c.height);
-    const r0 = data[0], g0 = data[1], b0 = data[2];
+    const { data } = c.getContext("2d").getImageData(0, 0, c.width, c.height);
+    const r0 = data[0], g0 = data[1], b0 = data[2], a0 = data[3];
     let diff = 0;
     const total = data.length / 4;
     for (let i = 0; i < data.length; i += 4) {
-      if (data[i] !== r0 || data[i + 1] !== g0 || data[i + 2] !== b0) diff++;
+      if (data[i] !== r0 || data[i + 1] !== g0 || data[i + 2] !== b0 || data[i + 3] !== a0) diff++;
     }
     return diff / total;
   });
+}
+
+/**
+ * Readback-free proof the 3D layer renders: freeze the loop (so the frame is
+ * static and nothing animates between shots), screenshot with #game3d shown,
+ * then hidden, and compare. A difference can only come from the 3D canvas.
+ */
+async function layer3DContributes(page) {
+  await page.evaluate(() => window.__game?.stop());
+  await wait(150);
+  const shown = await page.screenshot();
+  await page.evaluate(() => { document.getElementById("game3d").style.visibility = "hidden"; });
+  await wait(150);
+  const hidden = await page.screenshot();
+  await page.evaluate(() => {
+    document.getElementById("game3d").style.visibility = "";
+    window.__game?.start();
+  });
+  await wait(150);
+  return !shown.equals(hidden);
 }
 
 async function main() {
@@ -69,34 +94,39 @@ async function main() {
   try {
     await page.goto(URL, { waitUntil: "load" });
     await page.waitForSelector("#game", { timeout: 5000 });
-    await wait(600); // let the RAF loop paint the title
+    await wait(700); // let the RAF loop paint the title
 
-    // 1) Title screen renders.
-    let frac = await nonBlankFraction(page);
-    check("title screen renders content", frac > 0.02, `non-bg pixels ${(frac * 100).toFixed(1)}%`);
+    // 0) The 3D renderer actually initialized (didn't silently fall back to 2D).
+    const has3D = await page.evaluate(() => !!window.__r3d);
+    check("WebGL 3D renderer initialized", has3D, has3D ? "window.__r3d present" : "fell back to 2D");
+
+    // 1) Title screen renders on both layers: 3D ambient backdrop + 2D menu.
+    let hud = await hudNonBlankFraction(page);
+    check("title menu (2D overlay) renders", hud > 0.01, `HUD non-bg ${(hud * 100).toFixed(1)}%`);
     await page.screenshot({ path: join(SHOTS, "01-title.png") });
+    check("title 3D backdrop renders", await layer3DContributes(page));
 
-    // 2) New Game -> intro narration.
+    // 2) New Game -> Prelude intro narration.
     await key(page, "Enter"); // select "New Game"
     await wait(500);
-    frac = await nonBlankFraction(page);
-    check("chapter intro narration renders", frac > 0.02, `non-bg pixels ${(frac * 100).toFixed(1)}%`);
+    hud = await hudNonBlankFraction(page);
+    check("chapter intro narration renders", hud > 0.02, `HUD non-bg ${(hud * 100).toFixed(1)}%`);
     await page.screenshot({ path: join(SHOTS, "02-intro.png") });
 
-    // 3) Advance through the intro pages into the prologue world area.
+    // 3) Advance through the intro pages into the Prelude world area (3D).
     for (let i = 0; i < 8; i++) await key(page, "Space", 300);
-    await wait(400);
-    frac = await nonBlankFraction(page);
-    check("prologue world area renders", frac > 0.05, `non-bg pixels ${(frac * 100).toFixed(1)}%`);
+    await wait(500);
+    hud = await hudNonBlankFraction(page);
+    check("prelude HUD overlay renders", hud > 0.005, `HUD non-bg ${(hud * 100).toFixed(1)}%`);
     await page.screenshot({ path: join(SHOTS, "03-world.png") });
+    check("prelude 3D world renders", await layer3DContributes(page));
 
-    // 4) Player responds to movement input (the rendered frame changes).
+    // 4) Player responds to movement input — the rendered frame changes (the
+    //    camera follows the figure, so the 3D geometry shifts on screen).
     const before = await page.screenshot();
     await page.keyboard.down("KeyD");
-    await wait(500);
+    await wait(600);
     await page.keyboard.up("KeyD");
-    await key(page, "KeyJ"); // a strike
-    await wait(300);
     const after = await page.screenshot();
     check("frame changes in response to input", !before.equals(after));
     await page.screenshot({ path: join(SHOTS, "04-after-input.png") });

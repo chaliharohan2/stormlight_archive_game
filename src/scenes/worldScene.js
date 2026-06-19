@@ -344,10 +344,14 @@ export class WorldScene extends Scene {
   // --- render --------------------------------------------------------------
 
   render(r) {
-    r.centerCamOn(this.px + PLAYER_SIZE / 2, this.py + PLAYER_SIZE / 2, this.map.width, this.map.height);
-    this._renderMap(r);
-    this._renderEntities(r);
-    this._renderPlayer(r);
+    // With the 3D view active the playfield is drawn by WorldPresenter; the
+    // 2D canvas keeps only the HUD. Without it, the full 2D view still works.
+    if (!this.game.has3D) {
+      r.centerCamOn(this.px + PLAYER_SIZE / 2, this.py + PLAYER_SIZE / 2, this.map.width, this.map.height);
+      this._renderMap(r);
+      this._renderEntities(r);
+      this._renderPlayer(r);
+    }
     this._renderHud(r);
   }
 
@@ -440,10 +444,10 @@ export class WorldScene extends Scene {
     r.rectScreen(18, 62, 200 * p.stormlight.fraction, 10, PALETTE.blue);
     r.text("Stormlight", 18, 88, { color: PALETTE.dim, size: 12 });
 
-    // Objective / messages.
+    // Objective / messages (kept below the bars so long lines never overlap).
     if (this.messageTimer > 0 && this.message) {
-      r.rectScreen(r.width / 2 - 240, 14, 480, 30, "rgba(10,14,28,0.85)");
-      r.text(this.message, r.width / 2, 34, { color: PALETTE.glow, size: 15, align: "center" });
+      r.rectScreen(r.width / 2 - 300, 96, 600, 30, "rgba(10,14,28,0.85)");
+      r.text(this.message, r.width / 2, 116, { color: PALETTE.glow, size: 15, align: "center" });
     }
 
     // Interaction hint.

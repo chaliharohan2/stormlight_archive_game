@@ -27,6 +27,10 @@ export class Game {
     this.height = opts.height ?? this.canvas.height;
     this.ctx = this.canvas.getContext("2d");
     this.renderer = new Renderer(this.ctx, this.width, this.height);
+    /** Optional 3D view (see src/render3d/). When present the 2D canvas
+     *  becomes a transparent HUD overlay and scenes skip their 2D playfields. */
+    this.renderer3d = opts.renderer3d ?? null;
+    this.renderer.overlay = !!this.renderer3d;
     this.input = new Input();
     this.scenes = new SceneManager(this);
     this.save = new SaveManager(opts.saveBackend);
@@ -81,6 +85,11 @@ export class Game {
     return !!this.player?.powers?.has(name);
   }
 
+  /** True when a 3D renderer is attached (scenes use this to skip 2D playfields). */
+  get has3D() {
+    return !!this.renderer3d;
+  }
+
   // --- Campaign flow -------------------------------------------------------
 
   startChapter(id) {
@@ -133,7 +142,12 @@ export class Game {
       const dt = Math.min(0.05, (now - this._lastTime) / 1000); // clamp big gaps
       this._lastTime = now;
       this.scenes.update(dt, this.input);
-      this.renderer.clear();
+      if (this.renderer3d) {
+        this.renderer3d.render(this, dt);
+        this.renderer.clearTransparent();
+      } else {
+        this.renderer.clear();
+      }
       this.scenes.render(this.renderer);
       this.input.endFrame();
       this._raf = requestAnimationFrame(tick);

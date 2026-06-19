@@ -43,7 +43,7 @@ export class MenuScene extends Scene {
   }
 
   render(r) {
-    r.clear(PALETTE.bgDeep);
+    r.sceneBackdrop(PALETTE.bgDeep, 0.5);
     r.glow(r.width / 2, r.height / 2 - 60, 360, "rgba(79,176,255,0.08)", false);
 
     if (this.title) {

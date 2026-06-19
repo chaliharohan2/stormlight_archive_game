@@ -9,12 +9,26 @@ import { CHAPTERS } from "./content/campaign.js";
 const WIDTH = 960;
 const HEIGHT = 600;
 
-function boot() {
+async function boot() {
   const canvas = document.getElementById("game");
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
 
-  const game = new Game({ canvas, width: WIDTH, height: HEIGHT, chapters: CHAPTERS });
+  // 3D view (Three.js over WebGL). If the browser can't do WebGL — or the
+  // module fails to load — we fall back to the original pure-2D renderer.
+  let renderer3d = null;
+  try {
+    const { createRenderer3D } = await import("./render3d/renderer3d.js");
+    renderer3d = createRenderer3D(document.getElementById("game3d"), WIDTH, HEIGHT);
+  } catch (err) {
+    console.warn("3D renderer unavailable; falling back to 2D.", err);
+  }
+  if (!renderer3d) document.getElementById("game3d")?.remove();
+
+  const game = new Game({ canvas, width: WIDTH, height: HEIGHT, chapters: CHAPTERS, renderer3d });
+  // Debug/verification handles (used by tools/verify-ui.mjs).
+  window.__game = game;
+  window.__r3d = renderer3d;
 
   // Show a chapter's intro pages, then begin play.
   function startChapterFlow(id) {
@@ -43,8 +57,8 @@ function boot() {
     game.scenes.replace(
       new NarrationScene(
         [
-          { title: "The Way of Kings", subtitle: "Book One complete", text: "You have walked the Shattered Plains, drawn Stormlight, and spoken the First Ideal." },
-          { epigraph: "“Life before death. Strength before weakness. Journey before destination.”", text: "Thank you for playing. — Words of Radiance awaits." },
+          { title: "The Way of Kings", subtitle: "Book One complete", text: "The Tower has been survived. Bridge Four stands free in Kholin blue, a Shardblade has been traded for a thousand slaves, and the Assassin in White carries a list with one name left upon it." },
+          { epigraph: "“The most important step a man can take. It's not the first one. It's the next one.”", text: "Thank you for playing. The Knights Radiant must stand again — Words of Radiance is next." },
         ],
         { onComplete: showTitle }
       )
@@ -60,7 +74,7 @@ function boot() {
       items: [
         {
           label: "New Game",
-          hint: "Begin from the prologue",
+          hint: "Begin from the Prelude",
           onSelect: () => {
             game.save.clear();
             game.progress = game.progress.constructor

@@ -33,7 +33,7 @@ function tap(game, code, dt = 0.4) {
 test("game loop runs without throwing and renders frames", () => {
   const stepper = installRAF();
   const game = newGame();
-  game.startChapter("prologue");
+  game.startChapter("prelude");
   game.start(); // begins RAF loop with the current scene
   stepper.run(5, 16);
   game.stop();
@@ -42,7 +42,7 @@ test("game loop runs without throwing and renders frames", () => {
 
 test("sphere pickup grants Stormlight", () => {
   const game = newGame();
-  game.startChapter("prologue");
+  game.startChapter("szeth");
   const scene = game.scenes.current;
   const sphere = scene.entities.find((e) => e.type === "sphere");
   const before = game.player.stormlight.amount;
@@ -55,7 +55,7 @@ test("sphere pickup grants Stormlight", () => {
 
 test("striking an enemy eventually kills it", () => {
   const game = newGame();
-  game.startChapter("prologue");
+  game.startChapter("szeth");
   const scene = game.scenes.current;
   const enemy = scene.entities.find((e) => e.type === "enemy");
   // Stand just left of the enemy, facing right.
@@ -72,20 +72,21 @@ test("striking an enemy eventually kills it", () => {
   assert.equal(enemy._dead, true, "enemy should be defeated");
 });
 
-test("a single chapter (prologue) can be played to completion", () => {
+test("a single chapter (the prelude) can be played to completion", () => {
   const game = newGame();
   let completed = null;
   game.onChapterComplete = (id) => {
     completed = id;
   };
-  game.startChapter("prologue");
-  playUntil(game, () => completed === "prologue", { budget: 2000 });
-  assert.equal(completed, "prologue", "the prologue should complete when played");
-  assert.equal(game.progress.isCompleted("prologue"), true);
-  assert.equal(game.progress.isUnlocked("kaladin"), true, "next chapter should unlock");
+  game.startChapter("prelude");
+  playUntil(game, () => completed === "prelude", { budget: 2000 });
+  assert.equal(completed, "prelude", "the prelude should complete when played");
+  assert.equal(game.progress.isCompleted("prelude"), true);
+  assert.equal(game.progress.isUnlocked("szeth"), true, "next chapter should unlock");
+  assert.equal(game.progress.getFlag("oathpactAbandoned"), true, "the Oathpact flag should be set");
 });
 
-test("the full six-chapter campaign can be played start to finish", () => {
+test("the full eight-chapter campaign can be played start to finish", () => {
   const game = newGame();
   let campaignDone = false;
   const completedOrder = [];
@@ -99,12 +100,12 @@ test("the full six-chapter campaign can be played start to finish", () => {
   };
 
   game.startChapter(game.chapterOrder[0]);
-  playUntil(game, () => campaignDone, { budget: 12000 });
+  playUntil(game, () => campaignDone, { budget: 20000 });
 
   assert.equal(campaignDone, true, "the campaign should reach its ending");
   assert.deepEqual(
     completedOrder,
-    ["prologue", "kaladin", "shallan", "dalinar", "tower", "finale"],
+    ["prelude", "szeth", "kaladin", "shallan", "amaram", "dalinar", "assassin", "tower"],
     "every chapter should complete in order"
   );
   assert.equal(game.progress.isCampaignComplete(), true);
@@ -113,10 +114,10 @@ test("the full six-chapter campaign can be played start to finish", () => {
 test("progress persists across a save/restore", () => {
   const backend = new MemoryBackend();
   const g1 = new Game({ canvas: makeFakeCanvas(), chapters: CHAPTERS, saveBackend: backend });
-  g1.progress.complete("prologue");
+  g1.progress.complete("prelude");
   g1.persist();
   const g2 = new Game({ canvas: makeFakeCanvas(), chapters: CHAPTERS, saveBackend: backend });
   assert.equal(g2.restore(), true);
-  assert.equal(g2.progress.isCompleted("prologue"), true);
-  assert.equal(g2.progress.isUnlocked("kaladin"), true);
+  assert.equal(g2.progress.isCompleted("prelude"), true);
+  assert.equal(g2.progress.isUnlocked("szeth"), true);
 });

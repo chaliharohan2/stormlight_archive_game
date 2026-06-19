@@ -2,21 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { GameProgress } from "../src/core/progression.js";
 
-const ORDER = ["prologue", "kaladin", "shallan", "dalinar", "tower", "finale"];
+const ORDER = ["prelude", "szeth", "kaladin", "shallan", "amaram", "dalinar", "assassin", "tower"];
 
 test("only the first chapter is unlocked at start", () => {
   const p = new GameProgress(ORDER);
-  assert.equal(p.isUnlocked("prologue"), true);
-  assert.equal(p.isUnlocked("kaladin"), false);
-  assert.equal(p.nextChapter(), "prologue");
+  assert.equal(p.isUnlocked("prelude"), true);
+  assert.equal(p.isUnlocked("szeth"), false);
+  assert.equal(p.nextChapter(), "prelude");
 });
 
 test("completing a chapter unlocks the next", () => {
   const p = new GameProgress(ORDER);
-  p.complete("prologue");
-  assert.equal(p.isCompleted("prologue"), true);
-  assert.equal(p.isUnlocked("kaladin"), true);
-  assert.equal(p.nextChapter(), "kaladin");
+  p.complete("prelude");
+  assert.equal(p.isCompleted("prelude"), true);
+  assert.equal(p.isUnlocked("szeth"), true);
+  assert.equal(p.nextChapter(), "szeth");
 });
 
 test("completing the final chapter finishes the campaign", () => {
@@ -37,10 +37,10 @@ test("flags set/get", () => {
 
 test("serializes and restores progress", () => {
   const p = new GameProgress(ORDER);
-  p.complete("prologue");
+  p.complete("prelude");
   p.setFlag("metSyl");
   const restored = GameProgress.fromJSON(ORDER, p.toJSON());
-  assert.equal(restored.isCompleted("prologue"), true);
-  assert.equal(restored.isUnlocked("kaladin"), true);
+  assert.equal(restored.isCompleted("prelude"), true);
+  assert.equal(restored.isUnlocked("szeth"), true);
   assert.equal(restored.hasFlag("metSyl"), true);
 });

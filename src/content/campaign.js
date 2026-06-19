@@ -1,4 +1,4 @@
-// The campaign: a six-chapter adaptation of The Way of Kings (Stormlight
+// The campaign: an eight-chapter adaptation of The Way of Kings (Stormlight
 // Archive, Book One). Each chapter is a plain object
 //   { id, title, blurb, intro?, outro?, start(game) }
 // and `start` drives the scene stack — narration, world areas, dialogue, and
@@ -28,20 +28,170 @@ function world(game, level) {
 }
 
 // ===========================================================================
-// Chapter 1 — Prologue: "To Kill"
+// Prelude — "The Oathpact"
+// Four and a half millennia before the main story: the Herald Kalak walks the
+// battlefield of Aharietiam, the "last" Desolation, and finds Jezrien waiting
+// by seven Honorblades. The Heralds abandon the Oathpact.
+// ===========================================================================
+
+const prelude = {
+  id: "prelude",
+  title: "Prelude — The Oathpact",
+  blurb: "The Heralds abandon the Oathpact on the field of Aharietiam, and lie to the world.",
+  intro: [
+    {
+      epigraph: "“To kill with the sword is the way of the Heralds. To die by it, their wages.”",
+      title: "The Oathpact",
+      subtitle: "Aharietiam — the last Desolation, 4,500 years before",
+      text:
+        "Kalak, Herald of the Almighty, picks his way across a field of the dead. The Desolation is won — again. Ten times ten he has died for these people and returned to the torture that waits between, and he cannot bear to go back. Ahead, by a ridge of broken stone, a lone figure waits. [WASD] move · [E] interact.",
+    },
+  ],
+  start(game) {
+    game.setupCharacter({
+      name: "Kalak",
+      maxHp: 100,
+      attack: 12,
+      defense: 3,
+      stormlightCapacity: 100,
+      powers: [],
+    });
+
+    world(game, {
+      id: "aharietiam-field",
+      tileSize: 36,
+      rows: [
+        "##########################",
+        "#........................#",
+        "#...##......##...........#",
+        "#........................#",
+        "#........................#",
+        "#......##.........##.....#",
+        "#........................#",
+        "#...##...................#",
+        "#........................#",
+        "##########################",
+      ],
+      spawn: { tx: 2, ty: 7 },
+      objective: "Cross the field of the dead. Jezrien waits by the Honorblades.",
+      clearToExit: false,
+      entities: [
+        // The dead: men, and the ridge of a fallen thunderclast.
+        { type: "decoration", tx: 5, ty: 3, w: 26, h: 12, color: "#5a3434" },
+        { type: "decoration", tx: 8, ty: 6, w: 26, h: 12, color: "#5a3434" },
+        { type: "decoration", tx: 12, ty: 2, w: 26, h: 12, color: "#5a3434" },
+        { type: "decoration", tx: 15, ty: 7, w: 26, h: 12, color: "#5a3434" },
+        { type: "decoration", tx: 10, ty: 4, w: 70, h: 22, color: "#3c3640" }, // thunderclast ridge
+        { type: "decoration", tx: 18, ty: 3, w: 70, h: 22, color: "#3c3640" },
+        { type: "decoration", tx: 7, ty: 8, w: 16, h: 16, color: "#55585f" }, // smoking ground
+        { type: "decoration", tx: 14, ty: 1, w: 16, h: 16, color: "#55585f" },
+        { type: "sign", tx: 6, ty: 5, speaker: "The field", text: "The dead lie in ranks where they stood. Men and Voidbringers tangled together, and the stone itself scorched. Whatever this victory cost, it has been paid in full." },
+        // Seven Honorblades thrust into the stone beside Jezrien.
+        { type: "decoration", tx: 21, ty: 1, w: 6, h: 20, color: "#cdd6e8" },
+        { type: "decoration", tx: 22, ty: 2, w: 6, h: 20, color: "#cdd6e8" },
+        { type: "decoration", tx: 23, ty: 1, w: 6, h: 20, color: "#cdd6e8" },
+        { type: "decoration", tx: 24, ty: 2, w: 6, h: 20, color: "#cdd6e8" },
+        { type: "decoration", tx: 21, ty: 3, w: 6, h: 20, color: "#cdd6e8" },
+        { type: "decoration", tx: 23, ty: 3, w: 6, h: 20, color: "#cdd6e8" },
+        { type: "decoration", tx: 24, ty: 4, w: 6, h: 20, color: "#cdd6e8" },
+        {
+          type: "npc",
+          tx: 22,
+          ty: 5,
+          name: "Jezrien",
+          color: "#d8ddec",
+          prompt: "speak with Jezrien",
+          tree: {
+            start: {
+              id: "start",
+              speaker: "Jezrien",
+              text: "Kalak. I had wondered if you would come. The others have already gone — Shalash, Nale, all of them. Their Blades are here. Look at them, planted like grave markers.",
+              next: "b",
+            },
+            b: {
+              id: "b",
+              speaker: "Kalak",
+              text: "Seven Blades. Jezrien — there should be eight. Where is Talenel's?",
+              next: "c",
+            },
+            c: {
+              id: "c",
+              speaker: "Jezrien",
+              text: "Taln fell in the battle. His Blade is wherever his body is. He alone has gone back to that place of fire and pain — and he alone will bear the Oathpact for all of us. We have agreed. We are not going back.",
+              choices: [
+                { text: "Not going back? Jezrien, the torture — we swore. This will damn us.", next: "horror" },
+                { text: "...I cannot return either. I haven't the strength to face it again.", next: "weary" },
+                { text: "And what becomes of us, then? What are Heralds who walk away?", next: "becomes" },
+              ],
+            },
+            horror: {
+              id: "horror",
+              speaker: "Jezrien",
+              text: "Damn us? Look at this field, Kalak, and tell me we are not damned already. Four millennia of dying for them, and the pain between each death longer than the lives we saved. A man can only carry so much.",
+              next: "converge",
+            },
+            weary: {
+              id: "weary",
+              speaker: "Jezrien",
+              text: "Nor have I. That is the truth none of us would say aloud until today. We are broken, old friend. Whatever we once were, the Oathpact has worn it away.",
+              next: "converge",
+            },
+            becomes: {
+              id: "becomes",
+              speaker: "Jezrien",
+              text: "We become men. Just men. We walk into the world and we do not look back, and perhaps in time we forget what we abandoned. Taln will hold. One man, holding the Oathpact alone — it may be enough. It will have to be.",
+              next: "converge",
+            },
+            converge: {
+              id: "converge",
+              speaker: "Kalak",
+              text: "And the people? When the Desolation comes again — and it will come, Jezrien — who tells them?",
+              next: "final",
+            },
+            final: {
+              id: "final",
+              speaker: "Jezrien",
+              text: "No one. We tell them that they finally won, that the Desolations are ended, and we let them live free of the dread we carry. It is a lie, Kalak. But it is a kind one. Goodbye, old friend.",
+              end: true,
+            },
+          },
+          onTalk: (game, scene) => {
+            if (scene._done) return;
+            scene._done = true;
+            game.progress.setFlag("oathpactAbandoned", true);
+            narrate(
+              game,
+              [
+                {
+                  subtitle: "The Oathpact, abandoned",
+                  text:
+                    "Jezrien walks away across the field of the dead, and does not look back. Kalak stands a long while among the seven Blades, then leaves his own beside them. The people will be told they won. Forty-five hundred years will pass before the storms say otherwise.",
+                },
+              ],
+              () => game.completeChapter("prelude")
+            );
+          },
+        },
+      ],
+    });
+  },
+};
+
+// ===========================================================================
+// Chapter One — "To Kill"
 // Szeth-son-son-Vallano, Truthless of Shinovar, assassinates King Gavilar
 // Kholin on the night Alethkar and the Parshendi sign their treaty.
 // ===========================================================================
 
-const prologue = {
-  id: "prologue",
-  title: "Prologue — To Kill",
+const szeth = {
+  id: "szeth",
+  title: "Chapter One — To Kill",
   blurb: "Szeth, a Truthless bound to obey, walks the halls of a king he must murder.",
   intro: [
     {
       epigraph: "“Szeth-son-son-Vallano, Truthless of Shinovar, wore white on the day he was to kill a king.”",
       title: "To Kill",
-      subtitle: "The night of the treaty",
+      subtitle: "The night of the treaty — 4,500 years after Aharietiam",
       text:
         "White, the color of the Shin death-marks — worn so the blood would show, so others would know what he was. He has been Truthless made, a slave to his Oathstone and the Lashings of the Stormlight. Tonight his masters command a king's death.",
     },
@@ -141,7 +291,7 @@ const prologue = {
                     "Gavilar Kholin falls. In his hand, a strange black sphere that should hold Stormlight but instead seems to drink the light from the room. Szeth pockets it and walks out a window, Lashing himself into the night.",
                 },
               ],
-              () => game.completeChapter("prologue")
+              () => game.completeChapter("szeth")
             );
           },
         },
@@ -151,14 +301,14 @@ const prologue = {
 };
 
 // ===========================================================================
-// Chapter 2 — Kaladin: "The Shattered Plains"
+// Chapter Two — Kaladin: "Bridge Four"
 // Months later, the surgeon's son turned soldier turned slave runs bridges for
 // Highprince Sadeas. The signature BRIDGE RUN minigame.
 // ===========================================================================
 
 const kaladin = {
   id: "kaladin",
-  title: "Chapter One — Bridge Four",
+  title: "Chapter Two — Bridge Four",
   blurb: "A slave brand on his forehead, Kaladin carries bridges across the chasms for Sadeas.",
   intro: [
     {
@@ -279,7 +429,7 @@ function startBridgeRun(game) {
 }
 
 // ===========================================================================
-// Chapter 3 — Shallan: "Jasnah's Ward"
+// Chapter Three — Shallan: "The Palanaeum"
 // In the city of Kharbranth, Shallan Davar becomes ward to the heretic scholar
 // Jasnah Kholin — and studies the Soulcaster she means to steal. The
 // SOULCASTING minigame.
@@ -287,7 +437,7 @@ function startBridgeRun(game) {
 
 const shallan = {
   id: "shallan",
-  title: "Chapter Two — The Palanaeum",
+  title: "Chapter Three — The Palanaeum",
   blurb: "Shallan wards under Jasnah Kholin and learns the art of Soulcasting.",
   intro: [
     {
@@ -402,15 +552,267 @@ function startSoulcasting(game) {
 }
 
 // ===========================================================================
-// Chapter 4 — Dalinar: "The Blackthorn"
+// Chapter Four — Kaladin flashback: "The Shardbearer"
+// Eight months before the bridges: squadleader Kaladin fells a Shardbearer on
+// a battlefield in Alethkar — and Brightlord Amaram repays him with a brand.
+// ===========================================================================
+
+const amaram = {
+  id: "amaram",
+  title: "Chapter Four — The Shardbearer",
+  blurb: "Eight months ago: Kaladin fells a Shardbearer, and learns what lighteyes are worth.",
+  intro: [
+    {
+      epigraph: "“A spear in his hands, his brother safe behind him — that was all he had ever asked.”",
+      title: "The Shardbearer",
+      subtitle: "Amaram's army, northern Alethkar — eight months ago",
+      text:
+        "Before the brands. Before the bridges. Kaladin, son of a surgeon, is a squadleader in Brightlord Amaram's army — nineteen years old and already a legend among the spearmen, because his squad lives where others die. Today, two border lords squabble over a hilltop that matters to no one.",
+    },
+    {
+      subtitle: "The battle turns",
+      text:
+        "Then the line shatters. A SHARDBEARER strides through the army like a man through tall grass, Blade flickering, dead men ungrieved behind him — and he is cutting straight toward Amaram. Kaladin's squad is all that stands in his path. Protect them. Kill him. [Space/J] strike — keep moving, never trade blows standing still.",
+    },
+  ],
+  start(game) {
+    game.setupCharacter({
+      name: "Kaladin",
+      maxHp: 120,
+      attack: 16,
+      defense: 2,
+      stormlightCapacity: 100,
+      powers: [], // no Stormlight, no Surges — just a spearman at his peak
+    });
+
+    world(game, {
+      id: "amaram-battlefield",
+      tileSize: 36,
+      rows: [
+        "##########################",
+        "#........................#",
+        "#...##...........##......#",
+        "#........................#",
+        "#........................#",
+        "#.....##........##.......#",
+        "#........................#",
+        "#........................#",
+        "##########################",
+      ],
+      spawn: { tx: 2, ty: 6 },
+      objective: "Bring down the Shardbearer before he reaches Amaram's banner.",
+      clearToExit: true,
+      entities: [
+        { type: "decoration", tx: 23, ty: 1, w: 10, h: 30, color: "#3f7d4e" }, // Amaram's banner
+        { type: "sign", tx: 4, ty: 3, speaker: "Squadleader Kaladin", text: "Cenn, stay behind me. Dallet, hold the squad in tight formation. Nobody dies today. NOBODY." },
+        enemySoldier(8, 3, "Enemy spearman"),
+        enemySoldier(12, 5, "Enemy spearman"),
+        enemySoldier(16, 2, "Enemy spearman"),
+        {
+          type: "enemy",
+          tx: 18,
+          ty: 5,
+          w: 36,
+          h: 36,
+          color: "#cfd2da",
+          speed: 46,
+          aggro: 340,
+          dropSphere: 0,
+          combatant: { name: "The Shardbearer", maxHp: 220, attack: 17, defense: 4 },
+        },
+        {
+          type: "exit",
+          tx: 23,
+          ty: 6,
+          label: "The fallen Shardbearer",
+          prompt: "stand over the Shardbearer",
+          color: "rgba(207,210,218,0.6)",
+          onTrigger: (game) => afterShardbearer(game),
+        },
+      ],
+    });
+  },
+};
+
+/** Aftermath of the Shardbearer kill: the refusal, then Amaram's betrayal. */
+function afterShardbearer(game) {
+  narrate(
+    game,
+    [
+      {
+        subtitle: "The impossible",
+        text:
+          "A darkeyed spearman has slain a Shardbearer. The man's Blade lies on the stone where it fell, gemstone winking in the pommel; his Plate has gone still around a corpse. By right of battle, both belong to Kaladin now — wealth enough to buy a princedom, and a heartbeat away from lighteyes himself.",
+      },
+      {
+        subtitle: "The refusal",
+        text:
+          "Kaladin looks at the Blade and feels only revulsion. It killed his men. Half his squad lies on this hilltop because of it. He is a spearman, not a lighteyes — he will not become the thing he fought. He gives the Shards away and goes to bind his soldiers' wounds. Amaram has summoned him to the command tent.",
+      },
+    ],
+    () => {
+      world(game, {
+        id: "amaram-tent",
+        tileSize: 36,
+        rows: [
+          "##################",
+          "#................#",
+          "#................#",
+          "#................#",
+          "#................#",
+          "#................#",
+          "##################",
+        ],
+        spawn: { tx: 2, ty: 3 },
+        objective: "Report to Brightlord Amaram.",
+        entities: [
+          // Amaram's personal guards flank the tent.
+          { type: "decoration", tx: 12, ty: 1, w: 20, h: 24, color: "#5d6a52" },
+          { type: "decoration", tx: 12, ty: 5, w: 20, h: 24, color: "#5d6a52" },
+          { type: "sign", tx: 6, ty: 5, speaker: "Dallet", text: "Watch yourself in there, son. Lighteyes don't summon spearmen to say thank you." },
+          {
+            type: "npc",
+            tx: 14,
+            ty: 3,
+            name: "Amaram",
+            color: "#3f7d4e",
+            prompt: "report to Amaram",
+            tree: {
+              start: {
+                id: "start",
+                speaker: "Amaram",
+                text: "Kaladin. You saved my life today — a full Shardbearer, felled by a darkeyed spearman. Remarkable. They tell me you refused the Shards. Where are they now?",
+                next: "b",
+              },
+              b: {
+                id: "b",
+                speaker: "Kaladin",
+                text: "I gave them away, Brightlord. To one of my men. I want no part of them — I'm a spearman. That Blade killed half my squad.",
+                next: "ask",
+              },
+              ask: {
+                id: "ask",
+                speaker: "Amaram",
+                text: "A Shardblade is not a thing one simply gives away, son. Think of what it means — of who must carry it. Give the Shards to me, and I will see you and your men rewarded beyond any spearman's dreams.",
+                choices: [
+                  { text: "They were never mine to give you. I renounced them.", next: "turn" },
+                  { text: "Why do you want them, Brightlord? You already have my answer.", next: "turn" },
+                  { text: "Take them, then. I want no part of lighteyes' games.", next: "turn" },
+                ],
+              },
+              turn: {
+                id: "turn",
+                speaker: "Amaram",
+                text: "I feared you would say something like that. A pity. A spearman who can kill a Shardbearer is a story, and stories spread. Guards — the men of his squad who saw. Kill them.",
+                next: "horror",
+              },
+              horror: {
+                id: "horror",
+                speaker: "Kaladin",
+                text: "No — NO! They fought for you! Dallet — !  ...You planned this. Before I even walked in. You were always going to take it.",
+                next: "brand",
+              },
+              brand: {
+                id: "brand",
+                speaker: "Amaram",
+                text: "The Blade is mine now; the world will be told I slew the Shardbearer. You will be branded shash — dangerous — and sold as a slave, and no one will believe the rantings of a slave. What I do now, I do for the good of Alethkar.",
+                end: true,
+              },
+            },
+            onTalk: (game, scene) => {
+              if (scene._done) return;
+              scene._done = true;
+              narrate(
+                game,
+                [
+                  {
+                    subtitle: "Shash",
+                    text:
+                      "The brand on his forehead burns for days. Glyphs: shash, dangerous — and beneath it, later, the mark of a runaway. His men are dead. The Blade that should have damned or exalted him hangs at Amaram's hip, and the world calls Amaram a hero.",
+                  },
+                  {
+                    subtitle: "Down to the bridges",
+                    text:
+                      "Slave caravans carry Kaladin south and east, master after master, escape after failed escape, until nothing is left to sell him for but the bridge crews of the Shattered Plains. This is how Kaladin Stormblessed came to Bridge Four. This is the wound beneath everything.",
+                  },
+                ],
+                () => game.completeChapter("amaram")
+              );
+            },
+          },
+        ],
+      });
+    }
+  );
+}
+
+// ===========================================================================
+// Chapter Five — Dalinar: "Visions in the Storm"
 // Highprince Dalinar Kholin, brother to murdered Gavilar, is plagued by visions
 // during the highstorms — visions that command him to UNITE THEM. The VISION
-// minigame.
+// minigame, expanded with the Midnight Essence town and Feverstone Keep.
 // ===========================================================================
+
+// New vision beats woven into the base gauntlet from visionScene.js. Defined
+// here (content layer) rather than in the scene file so the scene code stays
+// untouched. Same shape as the base beats: setting/speaker/text + choices with
+// honor deltas and response lines, feeding the existing rating system.
+
+const MIDNIGHT_TOWN_BEATS = [
+  {
+    id: "hebhome",
+    setting: "A rural town, another age — a stranger's home",
+    speaker: "Taffa, Heb's wife",
+    text:
+      "You wear another man's life: a one-room home, a fire in the hearth, a man named Heb and his wife and small daughter. Then the wall bursts. Things of Midnight Essence pour in — beasts of oily blackness, smooth as riverstone, all claws and wrongness. The only iron in reach is a fireplace poker.",
+    choices: [
+      { text: "Take up the poker and stand between the creatures and the family.", honor: 5, response: "It is not a Shardblade. You set your feet anyway. Life before death." },
+      { text: "Push the family out the back and hold the doorway alone.", honor: 4, response: "The doorway is narrow. So, tonight, is the line between them and the dark." },
+      { text: "Run. This is not your family, not your fight, not even your time.", honor: -4, response: "Their screams chase you into the rain. Some part of you never stops hearing them." },
+    ],
+  },
+  {
+    id: "radiants",
+    setting: "The burning town — light cresting the ridge",
+    speaker: "A woman in gleaming Shardplate",
+    text:
+      "When your arms are lead and the poker bent, light breaks over the town: two Knights Radiant. A woman in gleaming Plate summons her Blade from mist; a man in slate-grey armor moves like a falling boulder. Together they cut the Midnight Essence apart. The woman looks at your bloodied hands — and offers you her own Shardblade to hold the line, untrained as you are.",
+    choices: [
+      { text: "Accept the Blade with humility and guard the family while they fight.", honor: 4, response: "'Untrained, but you stood,' she says. 'The Knights Radiant exist so that ordinary people do not stand alone.'" },
+      { text: "Refuse the Blade — the poker has served, and the Blade is hers.", honor: 1, response: "She smiles, and does not insist. There is more than one shape of honor." },
+      { text: "Demand answers first: what are these things, and why did help come so late?", honor: -1, response: "'Questions after,' she says, already turning. 'Living people first.'" },
+    ],
+  },
+];
+
+const FEVERSTONE_BEAT = {
+  id: "feverstone",
+  setting: "Feverstone Keep — the Day of Recreance",
+  speaker: "The voice of the Almighty",
+  text:
+    "Hundreds of Knights Radiant ride to the Keep — Windrunners in blue, Stonewards in deep red. They dismount as one. Without a word they drive their Shardblades into the stone, shed their Plate where it falls, and walk away, while the watching soldiers swarm down to scavenge what gods abandoned. No one will say why. 'These events will go down in history as the Day of Recreance,' the voice says. Then, softer, the command beneath every vision: UNITE THEM.",
+  choices: [
+    { text: "Catch a knight by the arm and demand to know why they break their oaths.", honor: 4, response: "He looks through you with hollow eyes and pulls free. Whatever they learned, it broke them. Unite them." },
+    { text: "Run among them, begging even one to stay.", honor: 2, response: "Not one stops. A field of dead Blades hums behind you like a struck bell. Unite them." },
+    { text: "Watch in silence. Some things must simply be witnessed.", honor: 1, response: "You memorize every face. Someone must remember what was lost here. Unite them." },
+  ],
+};
+
+/** The base gauntlet with the new town beats early and Feverstone late. */
+export function buildExpandedVisionBeats(base = DALINAR_VISION_BEATS) {
+  const beats = [...base];
+  const afterRefrain = beats.findIndex((b) => b.id === "refrain") + 1;
+  beats.splice(afterRefrain, 0, ...MIDNIGHT_TOWN_BEATS);
+  const beforeOath = beats.findIndex((b) => b.id === "oath");
+  beats.splice(beforeOath < 0 ? beats.length : beforeOath, 0, FEVERSTONE_BEAT);
+  return beats;
+}
+
+export const EXPANDED_VISION_BEATS = buildExpandedVisionBeats();
 
 const dalinar = {
   id: "dalinar",
-  title: "Chapter Three — Visions in the Storm",
+  title: "Chapter Five — Visions in the Storm",
   blurb: "Dalinar Kholin walks the highstorm's visions and weighs honor against survival.",
   intro: [
     {
@@ -489,7 +891,7 @@ function startVision(game) {
     ],
     () => {
       game.scenes.replace(
-        new VisionScene(DALINAR_VISION_BEATS, {
+        new VisionScene(EXPANDED_VISION_BEATS, {
           onComplete: (result) => {
             game.progress.setFlag("dalinarRating", result.rating);
             game.progress.setFlag("dalinarUnited", result.united);
@@ -516,7 +918,196 @@ function startVision(game) {
 }
 
 // ===========================================================================
-// Chapter 5 — The Tower: "Sadeas's Betrayal"
+// Chapter Six — Szeth: "The Assassin in White"
+// Szeth's Oathstone has passed to a new, unnamed master who sends him against
+// the rulers of the world. Two assassinations; one name left on the list.
+// ===========================================================================
+
+const assassin = {
+  id: "assassin",
+  title: "Chapter Six — The Assassin in White",
+  blurb: "Szeth's new master sends him against the rulers of the world. He weeps, and obeys.",
+  intro: [
+    {
+      epigraph: "“The wretch in white came in the night, and the king did not see morning.”",
+      title: "The Assassin in White",
+      subtitle: "Somewhere east of Shinovar",
+      text:
+        "Szeth's Oathstone has changed hands again — sold, traded, won, until it rests with a master whose face he has never seen, whose orders arrive written and sealed. The new commands are worse than any before: the rulers of the world must die, so that chaos will reign before the True Desolation comes.",
+    },
+    {
+      subtitle: "The list",
+      text:
+        "He does not get to refuse. He is Truthless; he does as his master commands, and he adds the names to his list. Tonight the list says: Hanavanar, King of Jah Keved, feasting among his highprinces. [WASD] move · [Space/J] strike · [Shift/K] Lash forward on Stormlight.",
+    },
+  ],
+  start(game) {
+    game.setupCharacter({
+      name: "Szeth",
+      maxHp: 110,
+      attack: 22,
+      defense: 3,
+      stormlightBonus: 24,
+      stormlightCapacity: 120,
+      stormlight: 80,
+      powers: ["dash", "lashing"],
+    });
+
+    world(game, {
+      id: "veden-feast-hall",
+      tileSize: 36,
+      rows: [
+        "########################",
+        "#......................#",
+        "#..####..........####..#",
+        "#......................#",
+        "#.....##........##.....#",
+        "#......................#",
+        "#..####..........####..#",
+        "#......................#",
+        "########################",
+      ],
+      spawn: { tx: 2, ty: 7 },
+      objective: "Reach King Hanavanar. His guards know the stories now — they will not hesitate.",
+      clearToExit: false,
+      entities: [
+        { type: "sphere", tx: 6, ty: 1, charge: 40 },
+        { type: "sphere", tx: 12, ty: 5, charge: 40 },
+        { type: "sphere", tx: 18, ty: 7, charge: 40 },
+        guard(5, 4, "Veden guard"),
+        guard(10, 2, "Veden guard"),
+        guard(13, 6, "Veden guard"),
+        guard(17, 3, "Shield of the King", { maxHp: 55, attack: 9 }),
+        {
+          type: "npc",
+          tx: 21,
+          ty: 1,
+          name: "Hanavanar",
+          color: "#b65a3c",
+          prompt: "reach the king",
+          tree: {
+            start: {
+              id: "start",
+              speaker: "Hanavanar",
+              text: "The Assassin in White. So the stories out of Alethkar are true after all. I doubled my guard. I tripled it. And still you walk on my ceiling and bleed light like a god's own lantern.",
+              next: "b",
+            },
+            b: {
+              id: "b",
+              speaker: "Szeth",
+              text: "Your death is the wish of my master, Your Majesty. I am Truthless. I do not wish it — my wishes are nothing — but I obey, and I will weep for you after.",
+              next: "c",
+            },
+            c: {
+              id: "c",
+              speaker: "Hanavanar",
+              text: "Weep, then, monster. Jah Keved will not forget this night — none of the thrones of the world will. Whatever your master wants, it is not chaos for its own... sake...",
+              end: true,
+            },
+          },
+          onTalk: (game, scene) => {
+            if (scene._done) return;
+            scene._done = true;
+            narrate(
+              game,
+              [
+                {
+                  subtitle: "The list grows",
+                  text:
+                    "The King of Jah Keved falls among his feast tables, and Szeth goes out through the high windows, walking on walls the Lashings make into floors. I am Truthless, he tells the night. I do as my master commands... and I add the names to my list.",
+                },
+                {
+                  subtitle: "Westward",
+                  text:
+                    "There is no rest. The next sealed order is already waiting: Azimir, capital of Azir, and the bronze-walled palace of the Prime Aqasix. More guards. More stories of the white assassin. More names. Szeth weeps as he flies, and the wind takes the tears.",
+                },
+              ],
+              () => startAzirAssassination(game)
+            );
+          },
+        },
+      ],
+    });
+  },
+};
+
+/** Second target: the Prime of Azir in the bronze palace at Azimir. */
+function startAzirAssassination(game) {
+  world(game, {
+    id: "azir-bronze-palace",
+    tileSize: 36,
+    rows: [
+      "######################",
+      "#........#...........#",
+      "#..####..#..####..####",
+      "#........#...........#",
+      "####..####..####..#..#",
+      "#...........#.....#..#",
+      "#..####..####..####..#",
+      "#........#...........#",
+      "######################",
+    ],
+    spawn: { tx: 2, ty: 7 },
+    objective: "Thread the bronze corridors to the Prime. The whole palace is awake.",
+    clearToExit: false,
+    entities: [
+      { type: "sphere", tx: 5, ty: 1, charge: 40 },
+      { type: "sphere", tx: 11, ty: 3, charge: 40 },
+      { type: "sphere", tx: 15, ty: 7, charge: 40 },
+      guard(4, 3, "Azish guard"),
+      guard(7, 5, "Azish guard"),
+      guard(11, 1, "Azish guard"),
+      guard(13, 5, "Azish guard"),
+      guard(17, 3, "Vizier's blade", { maxHp: 50, attack: 9 }),
+      guard(19, 7, "Imperial guard", { maxHp: 55, attack: 9 }),
+      {
+        type: "npc",
+        tx: 20,
+        ty: 1,
+        name: "The Prime",
+        color: "#d8b24a",
+        prompt: "reach the Prime",
+        tree: {
+          start: {
+            id: "start",
+            speaker: "The Prime",
+            text: "They said no one could pass the bronze walls. They wrote essays proving it. Please — whatever you were paid, Azir will double it. Treble it. You weep — I can see you weeping. Why do this?",
+            next: "b",
+          },
+          b: {
+            id: "b",
+            speaker: "Szeth",
+            text: "Because my master commands it, Excellency, and I am Truthless. Weeping does not stay my hand. Nothing stays my hand. That is the horror of it.",
+            end: true,
+          },
+        },
+        onTalk: (game, scene) => {
+          if (scene._done) return;
+          scene._done = true;
+          narrate(
+            game,
+            [
+              {
+                subtitle: "Chaos, by design",
+                text:
+                  "The Prime of Azir is dead, and the bronze palace fills with wailing. Kings, primes, princes — throne by throne the world is being beheaded, and every death wears white. Chaos spreads exactly as Szeth's unseen master intends: a world too broken to stand together when the True Desolation comes.",
+              },
+              {
+                subtitle: "The master revealed",
+                text:
+                  "Far away, in the quiet City of Bells, a kindly old man reads the reports and grieves over what he believes must be done. Taravangian, King of Kharbranth — keeper of hospitals, friend to the poor — holds the Oathstone now. He unrolls Szeth's list and adds the final name: DALINAR KHOLIN.",
+              },
+            ],
+            () => game.completeChapter("assassin")
+          );
+        },
+      },
+    ],
+  });
+}
+
+// ===========================================================================
+// Chapter Seven — The Tower (the finale of Book One)
 // On a distant plateau, Sadeas withdraws his army and leaves Dalinar's forces
 // to die against the Parshendi. Kaladin — now touched by Stormlight — leads
 // Bridge Four back across the chasms to save the Blackthorn. Climactic combat.
@@ -524,7 +1115,7 @@ function startVision(game) {
 
 const tower = {
   id: "tower",
-  title: "Chapter Four — The Tower",
+  title: "The Tower",
   blurb: "Sadeas springs his trap; Kaladin and Bridge Four charge back to save Dalinar.",
   intro: [
     {
@@ -595,17 +1186,7 @@ const tower = {
           onTalk: (game, scene) => {
             if (scene._done) return;
             scene._done = true;
-            narrate(
-              game,
-              [
-                {
-                  subtitle: "The withdrawal",
-                  text:
-                    "Bridge Four lays its bridges and Dalinar's army escapes the trap. It costs them, but they live. Furious at Sadeas's treachery, Dalinar trades his priceless Shardblade for every one of Sadeas's bridgemen — and sets them free.",
-                },
-              ],
-              () => game.completeChapter("tower")
-            );
+            finishTheTower(game);
           },
         },
       ],
@@ -613,148 +1194,34 @@ const tower = {
   },
 };
 
-// ===========================================================================
-// Chapter 6 — Finale: "The First Ideal"
-// In the chasm before the rescue, on the edge of death, Kaladin speaks the
-// Words. Syl becomes a Shardblade. The Knights Radiant return. Resolution.
-// ===========================================================================
-
-const finale = {
-  id: "finale",
-  title: "Chapter Five — Words of Radiance",
-  blurb: "On the edge of death, Kaladin speaks the First Ideal and the Radiants stir again.",
-  intro: [
-    {
-      epigraph: "“Life before death. Strength before weakness. Journey before destination.”",
-      title: "The First Ideal",
-      subtitle: "A chasm, moments before",
-      text:
-        "Hours earlier, in the wet dark of a chasm, Kaladin bled and despaired and chose, finally, to stand. Syl offered him a question, and an oath older than the kingdoms. This is the moment everything turned.",
-    },
-  ],
-  start(game) {
-    game.setupCharacter({
-      name: "Kaladin",
-      maxHp: 140,
-      attack: 22,
-      defense: 5,
-      stormlightBonus: 32,
-      stormlightCapacity: 150,
-      stormlight: 150,
-      powers: ["dash", "lashing"],
-    });
-
-    // A short, charged sequence: speak the Ideal (dialogue), then a final
-    // surge of resolve carries us out.
-    narrate(
-      game,
-      [
-        {
-          subtitle: "Syl asks",
-          text:
-            "'Say the Words,' Syl whispers, no longer a mere windspren but something far older — an honorspren, a piece of a dead god's honor. 'They've been forgotten for so long. Say them, and live.'",
-        },
-      ],
-      () => speakTheIdeal(game)
-    );
-  },
-};
-
-function speakTheIdeal(game) {
-  world(game, {
-    id: "the-oath",
-    tileSize: 36,
-    rows: [
-      "##################",
-      "#................#",
-      "#................#",
-      "#................#",
-      "#................#",
-      "#................#",
-      "##################",
-    ],
-    spawn: { tx: 2, ty: 3 },
-    objective: "Speak with Syl, then walk into the light.",
-    entities: [
-      { type: "sphere", tx: 6, ty: 2, charge: 60 },
-      { type: "sphere", tx: 6, ty: 4, charge: 60 },
-      {
-        type: "npc",
-        tx: 9,
-        ty: 3,
-        name: "Syl",
-        color: "#bfe6ff",
-        prompt: "speak the Words",
-        tree: {
-          start: { id: "start", speaker: "Syl", text: "You're dying, Kaladin. But you don't have to. There's a thing you can become — a thing the world has needed for two thousand years. Will you?", hasChoices: true,
-            choices: [
-              { text: "“I will protect those who cannot protect themselves.”", next: "good" },
-              { text: "“I will protect even those I hate, so long as it is right.”", next: "good" },
-              { text: "I'm not strong enough.", next: "doubt" },
-            ],
-          },
-          doubt: { id: "doubt", speaker: "Syl", text: "You've been strong enough this whole time. You just didn't have the words for it. Say them. I'm right here.", hasChoices: true,
-            choices: [
-              { text: "“Life before death. Strength before weakness. Journey before destination.”", next: "good" },
-            ],
-          },
-          good: { id: "good", speaker: "Syl", text: "Yes! YES! That's the First Ideal of the Knights Radiant. Now — catch me!", next: "blade" },
-          blade: { id: "blade", speaker: "Kaladin", text: "Stormlight floods through me. Syl shimmers, lengthens, becomes a Blade of living light in my hand. The Radiants are dead. The Radiants are reborn.", end: true },
-        },
-        onTalk: (game, scene) => {
-          if (scene._done) return;
-          scene._done = true;
-          narrate(
-            game,
-            [
-              {
-                epigraph: "“I am Stormblessed.”",
-                subtitle: "Dawn over the Shattered Plains",
-                text:
-                  "Bridge Four is free. Dalinar Kholin has a bodyguard who glows. Shallan sails toward the war with secrets of her own. Jasnah watches the spren gather. And in the storms, a recorded voice still pleads: unite them.",
-              },
-            ],
-            () => endGame(game)
-          );
-        },
-      },
-    ],
-  });
-}
-
-/** Final completion — branches the closing line on Dalinar's vision rating. */
-function endGame(game) {
-  const rating = game.progress.getFlag("dalinarRating");
-  const line =
-    rating === "Radiant"
-      ? "You walked the visions as a true Radiant. Honor is not dead while men like Dalinar still choose it."
-      : rating
-      ? `Dalinar walked the visions as one ${ratingPhrase(rating)}. The road ahead is long, but the first steps are taken.`
-      : "The storms have spoken, and a few have listened. That is how every age begins.";
+/** The Tower's resolution — the rescue, the trade, and the end of Book One. */
+function finishTheTower(game) {
+  const united = game.progress.getFlag("dalinarUnited");
   narrate(
     game,
     [
       {
-        title: "The Way of Kings",
-        subtitle: "Book One — complete",
-        text: line,
+        subtitle: "The withdrawal",
+        text:
+          "Bridge Four lays its bridges under arrowfall, and the trapped Kholin army pours back across the chasms. It costs them — bridgemen and soldiers both — but the army that Sadeas left for dead marches home through his own warcamp, alive, with a glowing bridgeman at its head.",
+      },
+      {
+        subtitle: "The price of a Blade",
+        text:
+          "In front of every gathered eye, Dalinar walks to Sadeas and makes a trade no highprince can refuse or ever forget: Oathbringer, his priceless Shardblade, for every bridgeman Sadeas owns. One Blade, for a thousand slaves. 'You sold them cheap,' Dalinar tells him. Then he takes the bridgemen into his own guard — free men, every one." +
+          (united
+            ? " The visions asked him to unite. This, at last, is how it begins."
+            : " He does not yet trust the visions. But he knows what honor demanded today."),
+      },
+      {
+        epigraph: "“Life before death. Strength before weakness. Journey before destination.”",
+        subtitle: "The end of Book One",
+        text:
+          "Bridge Four stands in Kholin blue. Shallan sails toward the Shattered Plains with Jasnah's secrets. The Assassin in White unrolls a list with one name left on it. And Dalinar, asked how a man keeps walking under all that weight, gives the only answer that has ever mattered: The most important step a man can take. It's not the first one, is it? It's the next one. Always the next step.",
       },
     ],
-    () => game.completeChapter("finale")
+    () => game.completeChapter("tower")
   );
-}
-
-function ratingPhrase(rating) {
-  switch (rating) {
-    case "Honorable":
-      return "Honorable";
-    case "Wavering":
-      return "Wavering, but unbroken";
-    case "Fallen":
-      return "Fallen, yet not beyond redemption";
-    default:
-      return rating;
-  }
 }
 
 // --- entity factory helpers ------------------------------------------------
@@ -773,6 +1240,20 @@ function guard(tx, ty, name, over = {}) {
   };
 }
 
+/** An enemy soldier (rival army) at a tile. */
+function enemySoldier(tx, ty, name, over = {}) {
+  return {
+    type: "enemy",
+    tx,
+    ty,
+    color: "#9a4a3c",
+    speed: over.speed ?? 60,
+    aggro: over.aggro ?? 230,
+    dropSphere: over.dropSphere ?? 0,
+    combatant: { name, maxHp: over.maxHp ?? 30, attack: over.attack ?? 7, defense: over.defense ?? 1 },
+  };
+}
+
 /** A Parshendi warrior enemy at a tile. */
 function parshendi(tx, ty, name, over = {}) {
   return {
@@ -787,4 +1268,4 @@ function parshendi(tx, ty, name, over = {}) {
   };
 }
 
-export const CHAPTERS = [prologue, kaladin, shallan, dalinar, tower, finale];
+export const CHAPTERS = [prelude, szeth, kaladin, shallan, amaram, dalinar, assassin, tower];

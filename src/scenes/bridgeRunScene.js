@@ -81,6 +81,8 @@ export class BridgeRunScene extends Scene {
   }
 
   render(r) {
+    // With the 3D view active, BridgePresenter draws the run; keep HUD only.
+    if (this.game.has3D) return this._renderHud(r);
     const W = r.width;
     const H = r.height;
 
@@ -156,7 +158,12 @@ export class BridgeRunScene extends Scene {
       }
     }
 
-    // --- HUD. ---
+    this._renderHud(r);
+  }
+
+  _renderHud(r) {
+    const W = r.width;
+    const bracing = this._braceGlow > 0.05;
     // Distance progress bar.
     const barX = 24;
     const barY = 24;
