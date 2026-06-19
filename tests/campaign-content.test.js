@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import { makeFakeCanvas } from "./helpers/headless.js";
 import { playUntil } from "./helpers/autoplay.js";
 import { Game } from "../src/engine/game.js";
-import { CHAPTERS } from "../src/content/campaign.js";
+import { CHAPTERS, EXPANDED_VISION_BEATS } from "../src/content/campaign.js";
+import { DALINAR_VISION_BEATS } from "../src/scenes/visionScene.js";
+import { VisionSequence } from "../src/core/vision.js";
 import { MemoryBackend } from "../src/engine/storage.js";
 
 function newGame() {
@@ -44,7 +46,54 @@ test("every chapter declares the required shape", () => {
     assert.ok(!ids.has(ch.id), `duplicate chapter id: ${ch.id}`);
     ids.add(ch.id);
   }
-  assert.equal(CHAPTERS.length, 6, "the campaign has six chapters");
+  assert.equal(CHAPTERS.length, 8, "the campaign has eight chapters");
+});
+
+test("the chapters follow the restructured book-one order", () => {
+  assert.deepEqual(
+    CHAPTERS.map((c) => c.id),
+    ["prelude", "szeth", "kaladin", "shallan", "amaram", "dalinar", "assassin", "tower"]
+  );
+});
+
+test("the 'finale' chapter (Words of Radiance content) is gone", () => {
+  assert.ok(!CHAPTERS.some((c) => c.id === "finale"), "finale belongs to the next book");
+  assert.ok(!CHAPTERS.some((c) => c.id === "prologue"), "prologue was renamed to szeth");
+  assert.equal(CHAPTERS[CHAPTERS.length - 1].id, "tower", "The Tower is the finale of book one");
+});
+
+test("expanded vision beats keep every base beat and add the new visions", () => {
+  const ids = EXPANDED_VISION_BEATS.map((b) => b.id);
+  for (const base of DALINAR_VISION_BEATS) {
+    assert.ok(ids.includes(base.id), `base beat '${base.id}' must be kept`);
+  }
+  for (const added of ["hebhome", "radiants", "feverstone"]) {
+    assert.ok(ids.includes(added), `new beat '${added}' must be present`);
+  }
+  // Town vision early, Recreance (Feverstone) late.
+  assert.ok(ids.indexOf("hebhome") < ids.indexOf("recreance"), "Midnight Essence town comes early");
+  assert.ok(ids.indexOf("feverstone") > ids.indexOf("betrayal"), "Feverstone comes late");
+  assert.ok(ids.indexOf("feverstone") < ids.indexOf("oath"), "Feverstone precedes the closing beats");
+  // Every branch target must exist, and every beat must offer choices.
+  const idSet = new Set(ids);
+  for (const beat of EXPANDED_VISION_BEATS) {
+    assert.ok(Array.isArray(beat.choices) && beat.choices.length >= 2, `${beat.id} needs choices`);
+    for (const c of beat.choices) {
+      if (c.next) assert.ok(idSet.has(c.next), `${beat.id} -> '${c.next}' is a dangling beat`);
+    }
+  }
+});
+
+test("the expanded vision gauntlet completes and rates under always-first-choice play", () => {
+  const seq = new VisionSequence(EXPANDED_VISION_BEATS);
+  let safety = 50;
+  while (!seq.isComplete() && safety-- > 0) seq.choose(0);
+  assert.equal(seq.isComplete(), true, "the gauntlet must terminate");
+  const result = seq.result();
+  assert.ok(["Radiant", "Honorable", "Wavering", "Fallen"].includes(result.rating));
+  assert.equal(typeof result.united, "boolean");
+  assert.ok(seq.maxHonor() > new VisionSequence(DALINAR_VISION_BEATS).maxHonor(),
+    "new beats should raise the attainable honor ceiling");
 });
 
 test("all NPC dialogue trees across the campaign have no dangling references", () => {
@@ -78,10 +127,10 @@ test("all NPC dialogue trees across the campaign have no dangling references", (
       }
       return campaignDone;
     },
-    { budget: 12000 }
+    { budget: 20000 }
   );
 
-  assert.ok(trees.length >= 6, `expected to encounter several NPC trees, saw ${trees.length}`);
+  assert.ok(trees.length >= 9, `expected to encounter the campaign's NPC trees, saw ${trees.length}`);
   for (const { tree, where } of trees) validateTree(tree, where);
 });
 

@@ -30,14 +30,30 @@ body {
   padding: 16px;
 }
 
-#game {
-  background: #070a16;
+/* The 3D canvas sits underneath; the 2D canvas on top is a transparent
+   HUD/text overlay (it gets an opaque background only in 2D-fallback mode). */
+#stage {
+  position: relative;
+  width: 960px;
+  max-width: 96vw;
+  aspect-ratio: 960 / 600;
   border: 1px solid #2a3350;
   border-radius: 8px;
+  overflow: hidden;
   box-shadow: 0 0 60px rgba(79, 176, 255, 0.12), 0 10px 40px rgba(0, 0, 0, 0.6);
-  image-rendering: pixelated;
-  max-width: 96vw;
-  max-height: 80vh;
+  background: #070a16;
+}
+
+#game3d,
+#game {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#game {
+  background: transparent;
 }
 
 #controls {

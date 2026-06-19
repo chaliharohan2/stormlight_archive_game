@@ -18,6 +18,12 @@ export const CHARACTERS = {
   Rock: { color: "#cf8a4a", role: "Bridgeman, Horneater" },
   Bridge4: { color: PALETTE.blue, role: "Bridge Four" },
   Wit: { color: "#cfd6e4", role: "The King's Wit" },
+  Kalak: { color: "#8fb3a8", role: "Herald of the Almighty" },
+  Jezrien: { color: "#d8ddec", role: "Herald, king of the Heralds" },
+  Amaram: { color: "#3f7d4e", role: "Brightlord, Kaladin's betrayer" },
+  Hanavanar: { color: "#b65a3c", role: "King of Jah Keved" },
+  "The Prime": { color: "#d8b24a", role: "Prime Aqasix of Azir" },
+  Taravangian: { color: "#a8a4c0", role: "King of Kharbranth" },
   Parshendi: { color: PALETTE.parshendi, role: "Listeners" },
   Narrator: { color: PALETTE.dim, role: "" },
 };

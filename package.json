@@ -1,7 +1,7 @@
 {
   "name": "stormlight-way-of-kings-game",
   "version": "0.1.0",
-  "description": "A 2D narrative action-RPG adapting Book 1 of the Stormlight Archive: The Way of Kings.",
+  "description": "A 3D narrative action-RPG adapting Book 1 of the Stormlight Archive: The Way of Kings.",
   "type": "module",
   "scripts": {
     "test": "node --test tests/",
@@ -19,6 +19,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "playwright": "^1.49.1"
+    "playwright": "^1.49.1",
+    "three": "^0.184.0"
   }
 }

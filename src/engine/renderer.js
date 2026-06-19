@@ -28,10 +28,32 @@ export class Renderer {
     this.width = width;
     this.height = height;
     this.cam = { x: 0, y: 0 };
+    /** When true the 2D canvas is a HUD overlay above the 3D view: full-screen
+     *  scene backdrops become translucent veils instead of opaque fills. */
+    this.overlay = false;
   }
 
   clear(color = PALETTE.bg) {
     this.ctx.fillStyle = color;
+    this.ctx.fillRect(0, 0, this.width, this.height);
+  }
+
+  /** Wipe to fully transparent (overlay mode clears between frames). */
+  clearTransparent() {
+    this.ctx.clearRect(0, 0, this.width, this.height);
+  }
+
+  /**
+   * Full-screen backdrop for text-heavy scenes (menus, narration, puzzles).
+   * Opaque in 2D mode; in overlay mode a dark veil that keeps the 3D scene
+   * visible underneath while text stays readable.
+   */
+  sceneBackdrop(color = PALETTE.bgDeep, veil = 0.55) {
+    if (this.overlay) {
+      this.ctx.fillStyle = `rgba(5, 7, 15, ${veil})`;
+    } else {
+      this.ctx.fillStyle = color;
+    }
     this.ctx.fillRect(0, 0, this.width, this.height);
   }
 

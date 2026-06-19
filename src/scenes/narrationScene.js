@@ -47,7 +47,7 @@ export class NarrationScene extends Scene {
   render(r) {
     const p = this.page;
     if (!p) return;
-    r.rectScreen(0, 0, r.width, r.height, this.bg);
+    r.sceneBackdrop(this.bg, 0.6);
     // Subtle starfield-ish glow.
     r.glow(r.width / 2, r.height / 2 - 40, 320, "rgba(79,176,255,0.06)", false);
 

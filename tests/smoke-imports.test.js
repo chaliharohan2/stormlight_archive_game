@@ -26,6 +26,15 @@ const MODULES = [
   "../src/content/characters.js",
   "../src/content/campaign.js",
   "../src/main.js",
+  // 3D layer (browser-only at runtime, but imports cleanly in Node — the
+  // presenters only touch WebGL/DOM lazily, inside methods, never at import).
+  "../src/render3d/presenterUtils.js",
+  "../src/render3d/renderer3d.js",
+  "../src/render3d/worldPresenter.js",
+  "../src/render3d/bridgePresenter.js",
+  "../src/render3d/soulcastPresenter.js",
+  "../src/render3d/visionPresenter.js",
+  "../src/render3d/ambientPresenter.js",
 ];
 
 for (const m of MODULES) {

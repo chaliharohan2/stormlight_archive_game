@@ -109,7 +109,7 @@ export class SoulcastScene extends Scene {
   }
 
   render(r) {
-    r.clear(PALETTE.bgDeep);
+    r.sceneBackdrop(PALETTE.bgDeep, 0.35);
     const current = this.current;
     if (!current) return;
 

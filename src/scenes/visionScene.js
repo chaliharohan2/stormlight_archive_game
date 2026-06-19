@@ -182,8 +182,9 @@ export class VisionScene extends Scene {
     const H = r.height;
 
     // Dreamlike backdrop: deep dark with a slow soft glow at the center, evoking
-    // the eye of the highstorm pulling Dalinar inward.
-    r.clear(PALETTE.bgDeep);
+    // the eye of the highstorm pulling Dalinar inward. (In 3D mode this becomes
+    // a translucent veil over the storm cyclone backdrop.)
+    r.sceneBackdrop(PALETTE.bgDeep, 0.45);
     r.glow(W / 2, H / 2 - 30, Math.max(W, H) * 0.55, "rgba(79,176,255,0.10)", false);
     r.glow(W / 2, H * 0.78, 260, "rgba(155,107,255,0.08)", false);
 
