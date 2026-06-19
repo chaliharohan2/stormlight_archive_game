@@ -137,11 +137,15 @@ export class DialogueScene extends Scene {
 
     // Typewritten body.
     const shown = this._line.slice(0, Math.floor(this._revealed));
-    r.textWrapped(shown, x + 20, y + 34, w - 40, { size: 17, lineHeight: 24, color: PALETTE.white });
+    const bodyLines = r.textWrapped(shown, x + 20, y + 34, w - 40, {
+      size: 17,
+      lineHeight: 24,
+      color: PALETTE.white,
+    });
 
     const fullyRevealed = this._revealed >= this._line.length;
     if (cur.hasChoices && fullyRevealed) {
-      const cy = y + 34 + 24 * 2;
+      const cy = y + 34 + bodyLines.length * 24 + 12;
       cur.choices.forEach((c, i) => {
         const sel = i === this.selected;
         const ty = cy + i * 26;

@@ -113,7 +113,7 @@ export class Renderer {
 
   /** Word-wrap text into lines fitting maxWidth; returns the lines drawn. */
   textWrapped(str, x, y, maxWidth, opts = {}) {
-    const { size = 16, lineHeight = 22, font = "monospace" } = opts;
+    const { size = 16, lineHeight = 22, font = "monospace", align = "left" } = opts;
     this.ctx.font = `${opts.weight ?? "normal"} ${size}px ${font}`;
     const words = str.split(/\s+/);
     const lines = [];
@@ -128,8 +128,32 @@ export class Renderer {
       }
     }
     if (line) lines.push(line);
-    lines.forEach((ln, i) => this.text(ln, x, y + i * lineHeight, opts));
-    return lines;
+
+    // Break any line that still exceeds maxWidth (long tokens / typewriter partials).
+    const fitted = [];
+    for (const ln of lines) {
+      if (this.ctx.measureText(ln).width <= maxWidth) {
+        fitted.push(ln);
+        continue;
+      }
+      let chunk = "";
+      for (const ch of ln) {
+        const test = chunk + ch;
+        if (this.ctx.measureText(test).width > maxWidth && chunk) {
+          fitted.push(chunk);
+          chunk = ch;
+        } else {
+          chunk = test;
+        }
+      }
+      if (chunk) fitted.push(chunk);
+    }
+
+    // x is the left edge of the wrap box; map alignment to a draw anchor inside it.
+    const drawX =
+      align === "center" ? x + maxWidth / 2 : align === "right" ? x + maxWidth : x;
+    fitted.forEach((ln, i) => this.text(ln, drawX, y + i * lineHeight, { ...opts, align }));
+    return fitted;
   }
 
   centerCamOn(x, y, worldW, worldH) {
