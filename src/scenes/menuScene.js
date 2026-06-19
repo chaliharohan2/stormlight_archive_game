@@ -59,12 +59,13 @@ export class MenuScene extends Scene {
     }
 
     const startY = 260;
+    const rowH = 56;
     this.items.forEach((item, i) => {
       const sel = i === this.selected;
-      const y = startY + i * 44;
+      const y = startY + i * rowH;
       const color = item.disabled ? "#4a526a" : sel ? PALETTE.glow : PALETTE.white;
       if (sel && !item.disabled) {
-        r.rectScreen(r.width / 2 - 180, y - 24, 360, 36, "rgba(79,176,255,0.14)");
+        r.rectScreen(r.width / 2 - 180, y - 20, 360, 32, "rgba(79,176,255,0.14)");
       }
       r.text((sel ? "▸ " : "  ") + item.label, r.width / 2, y, {
         color,
@@ -72,7 +73,7 @@ export class MenuScene extends Scene {
         align: "center",
       });
       if (item.hint && sel) {
-        r.text(item.hint, r.width / 2, y + 20, { color: PALETTE.dim, size: 12, align: "center" });
+        r.text(item.hint, r.width / 2, y + 30, { color: PALETTE.dim, size: 12, align: "center" });
       }
     });
 
