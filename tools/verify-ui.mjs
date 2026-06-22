@@ -118,8 +118,25 @@ async function main() {
     await wait(500);
     hud = await hudNonBlankFraction(page);
     check("prelude HUD overlay renders", hud > 0.005, `HUD non-bg ${(hud * 100).toFixed(1)}%`);
-    await page.screenshot({ path: join(SHOTS, "03-world.png") });
     check("prelude 3D world renders", await layer3DContributes(page));
+
+    // 3b) The rigged glTF hero actually loads (capsule fallback otherwise). The
+    //     glb decode is slow under headless SwiftShader, so poll generously.
+    const modelReady = await page
+      .waitForFunction(
+        () => {
+          const r = window.__r3d;
+          if (!r) return false;
+          const pres = [...r._presenters.values()].find((p) => p._player);
+          return !!(pres && pres._player.rig && pres._player.rig.ready);
+        },
+        { timeout: 20000, polling: 200 }
+      )
+      .then(() => true)
+      .catch(() => false);
+    check("hero glTF character model loads", modelReady);
+    await wait(300);
+    await page.screenshot({ path: join(SHOTS, "03-world.png") });
 
     // 4) Player responds to movement input — the rendered frame changes (the
     //    camera follows the figure, so the 3D geometry shifts on screen).

@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Way of Kings — A Stormlight Archive Game</title>
     <link rel="stylesheet" href="./styles.css" />
+    <!-- Vendored Three.js. The import map lets the addons in vendor/jsm (which
+         import the bare specifier "three") resolve to the SAME module URL our
+         own code imports relatively, so there is only ever one THREE instance.
+         No bundler or network fetch involved. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three.module.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="frame">

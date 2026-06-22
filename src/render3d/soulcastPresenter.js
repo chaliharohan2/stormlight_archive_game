@@ -38,12 +38,12 @@ export class SoulcastPresenter {
     this._built = true;
     this.three.background = new THREE.Color(COLORS.bgDeep);
     this.three.fog = new THREE.Fog(COLORS.bgDeep, 500, 1400);
-    addLights(this.three, { ambient: 0.55 });
+    addLights(this.three, { ambient: 0.6, shadows: 0 });
 
     // Stone dais.
     const dais = new THREE.Mesh(
       new THREE.CylinderGeometry(150, 190, 30, 24),
-      new THREE.MeshLambertMaterial({ color: COLORS.stone })
+      new THREE.MeshStandardMaterial({ color: COLORS.stone })
     );
     dais.position.y = -40;
     this.three.add(dais);
@@ -51,7 +51,7 @@ export class SoulcastPresenter {
     // The object being Soulcast: a large faceted crystal.
     this._stoneColor = new THREE.Color(COLORS.stone);
     this._glowColor = new THREE.Color(COLORS.glow);
-    this._crystalMat = new THREE.MeshLambertMaterial({ color: COLORS.stone, emissive: 0x000000 });
+    this._crystalMat = new THREE.MeshStandardMaterial({ color: COLORS.stone, emissive: 0x000000 });
     this._crystal = new THREE.Mesh(new THREE.IcosahedronGeometry(55, 0), this._crystalMat);
     this._crystal.position.y = 80;
     this.three.add(this._crystal);

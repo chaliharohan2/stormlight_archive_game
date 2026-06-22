@@ -41,11 +41,13 @@ export class BridgePresenter {
     addLights(this.three, { sunColor: 0x9fb6e0 });
 
     const slabGeo = new THREE.BoxGeometry(1100, 240, 900);
-    const slabMat = new THREE.MeshLambertMaterial({ color: COLORS.stone });
+    const slabMat = new THREE.MeshStandardMaterial({ color: COLORS.stone });
     const near = new THREE.Mesh(slabGeo, slabMat);
     near.position.set(-(SPAN / 2 + 550), -120, 0);
+    near.receiveShadow = true;
     const far = new THREE.Mesh(slabGeo, slabMat);
     far.position.set(SPAN / 2 + 550, -120, 0);
+    far.receiveShadow = true;
     this.three.add(near, far);
 
     // Chasm floor far below.
@@ -59,12 +61,13 @@ export class BridgePresenter {
 
     // The bridge: planks with gaps plus two rails.
     const deck = new THREE.Group();
-    const plankMat = new THREE.MeshLambertMaterial({ color: COLORS.wood });
-    const railMat = new THREE.MeshLambertMaterial({ color: COLORS.woodLight });
+    const plankMat = new THREE.MeshStandardMaterial({ color: COLORS.wood });
+    const railMat = new THREE.MeshStandardMaterial({ color: COLORS.woodLight });
     const planks = 12;
     for (let i = 0; i < planks; i++) {
       const p = new THREE.Mesh(new THREE.BoxGeometry(SPAN / planks - 3, 6, 90), plankMat);
       p.position.set(-SPAN / 2 + (i + 0.5) * (SPAN / planks), 8, 0);
+      p.receiveShadow = true;
       deck.add(p);
     }
     for (const z of [-48, 48]) {
@@ -76,7 +79,7 @@ export class BridgePresenter {
 
     // Scrolling outcrops on both plateaus to convey forward motion.
     this._props = new THREE.Group();
-    const rockMat = new THREE.MeshLambertMaterial({ color: COLORS.stoneLight });
+    const rockMat = new THREE.MeshStandardMaterial({ color: COLORS.stoneLight });
     for (let i = 0; i < 16; i++) {
       const w = 30 + (i * 37) % 50;
       const rock = new THREE.Mesh(new THREE.BoxGeometry(w, 24 + (i * 23) % 40, w), rockMat);
