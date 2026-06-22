@@ -8,35 +8,41 @@
 
 import { THREE } from "./presenterUtils.js";
 
-const HERO_URL = new URL("../../assets/models/soldier.glb", import.meta.url).href;
+// Default humanoid. Swap in a bespoke hero by passing `url` to CharacterRig —
+// any rigged glTF with idle/walk(/run) clips works; sizing is automatic.
+export const DEFAULT_MODEL_URL = new URL("../../assets/models/soldier.glb", import.meta.url).href;
 
 // The Soldier model's local forward axis vs. our convention (rotation.y = 0
 // should face +z, toward the camera). Tuned to look correct in-scene.
 const MODEL_FACING_OFFSET = Math.PI;
 
-let _gltfPromise = null;
-function loadHeroGLTF() {
-  if (!_gltfPromise) {
-    _gltfPromise = (async () => {
-      const [{ GLTFLoader }, { clone }] = await Promise.all([
-        import("../../vendor/jsm/loaders/GLTFLoader.js"),
-        import("../../vendor/jsm/utils/SkeletonUtils.js"),
-      ]);
-      const loader = new GLTFLoader();
-      const gltf = await loader.loadAsync(HERO_URL);
-      return { gltf, clone };
-    })();
+const _cache = new Map(); // url -> Promise<{ gltf, clone }>
+function loadGLTF(url) {
+  if (!_cache.has(url)) {
+    _cache.set(
+      url,
+      (async () => {
+        const [{ GLTFLoader }, { clone }] = await Promise.all([
+          import("../../vendor/jsm/loaders/GLTFLoader.js"),
+          import("../../vendor/jsm/utils/SkeletonUtils.js"),
+        ]);
+        const loader = new GLTFLoader();
+        const gltf = await loader.loadAsync(url);
+        return { gltf, clone };
+      })()
+    );
   }
-  return _gltfPromise;
+  return _cache.get(url);
 }
 
 export class CharacterRig {
-  /** @param {{height?:number,color?:number|null}} opts */
-  constructor({ height = 38, color = null } = {}) {
+  /** @param {{height?:number,color?:number|null,url?:string}} opts */
+  constructor({ height = 38, color = null, url = DEFAULT_MODEL_URL } = {}) {
     this.root = new THREE.Group();
     this.ready = false;
     this._height = height;
     this._color = color;
+    this._url = url;
     this._mixer = null;
     this._idle = null;
     this._walk = null;
@@ -47,7 +53,7 @@ export class CharacterRig {
   async _load() {
     let data;
     try {
-      data = await loadHeroGLTF();
+      data = await loadGLTF(this._url);
     } catch {
       return; // leave the caller's capsule fallback in place
     }

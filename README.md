@@ -8,9 +8,10 @@ Bridge Four's charge at the Tower.
 Built **from scratch with no build step and no framework**: vanilla JavaScript
 ES modules, rendered with [Three.js](https://threejs.org/) (vendored in
 `vendor/`, no install or bundler required). The world is drawn in WebGL with a
-modern pipeline — **PBR materials with image-based lighting, real-time shadow
-maps, ACES filmic tone mapping, and a bloom post-processing pass** for the
-Stormlight glow — over a transparent 2D Canvas that paints the HUD and text.
+modern pipeline — **PBR materials with image-based lighting, CC0 textured
+ground/stone/wood surfaces, real-time shadow maps, ACES filmic tone mapping,
+and a bloom post-processing pass** for the Stormlight glow — over a transparent
+2D Canvas that paints the HUD and text.
 Characters are **rigged, animated glTF models** (a CC0 asset, cloned per figure)
 that idle, walk, and turn to face their heading, under a cinematic three-quarter
 chase camera. Where WebGL isn't available the game **falls back to the original
@@ -91,7 +92,8 @@ src/
                and the three minigame scenes
   render3d/    The 3D layer: one "presenter" per scene type that mirrors the
                scene's plain logic state into a Three.js scene graph each frame,
-               plus characterRig.js (loads/clones the animated glTF figures)
+               plus characterRig.js (animated glTF figures) and texturePack.js
+               (cached PBR materials)
   content/     The campaign (characters.js, campaign.js)
   main.js      Browser entry point
 vendor/          Vendored Three.js + the addons used at runtime
@@ -99,6 +101,7 @@ vendor/          Vendored Three.js + the addons used at runtime
   jsm/           EffectComposer/bloom, GLTFLoader, SkeletonUtils, RoomEnvironment
 assets/
   models/        CC0 glTF character model(s)
+  textures/      CC0 PBR texture sets (albedo / normal / roughness)
 tools/
   serve.js        zero-dep static file server
   verify-ui.mjs   Playwright UI smoke test (checks both render layers)
@@ -119,7 +122,7 @@ stays fully playable and testable without a GPU.
 npm test
 ```
 
-Runs the full suite with Node's built-in test runner — **136 tests** covering
+Runs the full suite with Node's built-in test runner — **137 tests** covering
 the core logic plus integration tests that drive the _real_ game loop through:
 
 - a sphere pickup and a real melee kill,
@@ -146,4 +149,5 @@ infringement intended; not for sale.
 
 The character model (`assets/models/soldier.glb`) is the **Soldier** asset by
 Tomás Laulhé, modified by Don McCurdy, released under **CC0** (public domain) and
-distributed with the three.js examples.
+distributed with the three.js examples. The ground/stone/wood textures in
+`assets/textures/` are **CC0** material sets from [Poly Haven](https://polyhaven.com/).

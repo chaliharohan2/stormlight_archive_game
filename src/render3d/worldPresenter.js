@@ -14,6 +14,7 @@ import {
   makeParticles,
 } from "./presenterUtils.js";
 import { CharacterRig } from "./characterRig.js";
+import { worldMaterial } from "./texturePack.js";
 
 const WALL_H = 56;
 const PLAYER_SIZE = 22; // mirrors worldScene.js
@@ -50,32 +51,33 @@ export class WorldPresenter {
     const map = scene.map;
     const ts = map.tileSize;
 
-    // Classify tiles, then draw each class as one InstancedMesh.
+    // Classify tiles, then draw each class as one InstancedMesh. Default tiles
+    // are white so the PBR texture shows true, with a deterministic brightness
+    // jitter to break up the per-tile repeat; custom level colors tint the
+    // texture instead.
+    const jit = (x, y) => 0.78 + (((x * 7 + y * 13) % 7) / 7) * 0.22;
     const buckets = { floor: [], wall: [], bridge: [] };
     let hasChasm = false;
     for (let y = 0; y < map.rows; y++) {
       for (let x = 0; x < map.cols; x++) {
         const def = map.legend[map.grid[y][x]] ?? {};
         const custom = def.color ? cssToHex(def.color, null) : null;
+        const cell = { x, y, color: custom ?? 0xffffff, jitter: custom ? 1 : jit(x, y) };
         if (def.type === "wall" || def.solid) {
-          buckets.wall.push({ x, y, color: custom ?? ((x + y) % 2 ? COLORS.stone : COLORS.stoneLight) });
+          buckets.wall.push(cell);
         } else if (def.type === "chasm") {
           hasChasm = true; // leave a hole; the abyss plane below shows through
         } else if (def.type === "bridge") {
-          buckets.bridge.push({ x, y, color: custom ?? COLORS.wood });
+          buckets.bridge.push(cell);
         } else {
-          buckets.floor.push({ x, y, color: custom ?? ((x + y) % 2 ? COLORS.floor : COLORS.floorAlt) });
+          buckets.floor.push(cell);
         }
       }
     }
 
-    const place = (items, geo, cy, { rough = 0.9, metal = 0.0, cast = false, receive = true } = {}) => {
+    const place = (items, geo, cy, material, { cast = false, receive = true } = {}) => {
       if (!items.length) return;
-      const mesh = new THREE.InstancedMesh(
-        geo,
-        new THREE.MeshStandardMaterial({ roughness: rough, metalness: metal }),
-        items.length
-      );
+      const mesh = new THREE.InstancedMesh(geo, material, items.length);
       mesh.castShadow = cast;
       mesh.receiveShadow = receive;
       const m = new THREE.Matrix4();
@@ -83,14 +85,14 @@ export class WorldPresenter {
       items.forEach((t, i) => {
         m.makeTranslation((t.x + 0.5) * ts, cy, (t.y + 0.5) * ts);
         mesh.setMatrixAt(i, m);
-        mesh.setColorAt(i, c.setHex(t.color));
+        mesh.setColorAt(i, c.setHex(t.color).multiplyScalar(t.jitter));
       });
       this.three.add(mesh);
     };
 
-    place(buckets.floor, new THREE.BoxGeometry(ts, 8, ts), -4, { rough: 0.96 });
-    place(buckets.wall, new THREE.BoxGeometry(ts, WALL_H, ts), WALL_H / 2 - 8, { rough: 0.85, cast: true });
-    place(buckets.bridge, new THREE.BoxGeometry(ts, 6, ts), -3, { rough: 0.8, cast: true });
+    place(buckets.floor, new THREE.BoxGeometry(ts, 8, ts), -4, worldMaterial("floor"));
+    place(buckets.wall, new THREE.BoxGeometry(ts, WALL_H, ts), WALL_H / 2 - 8, worldMaterial("wall"), { cast: true });
+    place(buckets.bridge, new THREE.BoxGeometry(ts, 6, ts), -3, worldMaterial("wood"), { cast: true });
 
     if (hasChasm) {
       // The abyss far below, plus drifting dust to give the drop depth.

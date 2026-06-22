@@ -36,6 +36,7 @@ const MODULES = [
   "../src/render3d/visionPresenter.js",
   "../src/render3d/ambientPresenter.js",
   "../src/render3d/characterRig.js",
+  "../src/render3d/texturePack.js",
 ];
 
 for (const m of MODULES) {
