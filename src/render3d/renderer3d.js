@@ -24,6 +24,26 @@ const PRESENTER_FOR = {
   GameOverScene: AmbientPresenter,
 };
 
+// A cheap radial vignette to frame the scene cinematically. Applied in the
+// composer chain after bloom (in linear HDR), so it just darkens toward the
+// corners before tone mapping.
+const VIGNETTE_SHADER = {
+  uniforms: { tDiffuse: { value: null }, strength: { value: 0.5 } },
+  vertexShader:
+    "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float strength;
+    varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      float d = distance(vUv, vec2(0.5));
+      float vig = smoothstep(0.85, 0.40, d);
+      c.rgb *= mix(1.0, vig, strength);
+      gl_FragColor = c;
+    }`,
+};
+
 export class Renderer3D {
   constructor(canvas, width, height) {
     this.width = width;
@@ -62,12 +82,14 @@ export class Renderer3D {
         { EffectComposer },
         { RenderPass },
         { UnrealBloomPass },
+        { ShaderPass },
         { OutputPass },
         { RoomEnvironment },
       ] = await Promise.all([
         import("../../vendor/jsm/postprocessing/EffectComposer.js"),
         import("../../vendor/jsm/postprocessing/RenderPass.js"),
         import("../../vendor/jsm/postprocessing/UnrealBloomPass.js"),
+        import("../../vendor/jsm/postprocessing/ShaderPass.js"),
         import("../../vendor/jsm/postprocessing/OutputPass.js"),
         import("../../vendor/jsm/environments/RoomEnvironment.js"),
       ]);
@@ -89,6 +111,7 @@ export class Renderer3D {
       );
       composer.addPass(renderPass);
       composer.addPass(bloom);
+      composer.addPass(new ShaderPass(VIGNETTE_SHADER));
       composer.addPass(new OutputPass());
 
       this._renderPass = renderPass;

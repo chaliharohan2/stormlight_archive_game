@@ -10,8 +10,9 @@ ES modules, rendered with [Three.js](https://threejs.org/) (vendored in
 `vendor/`, no install or bundler required). The world is drawn in WebGL with a
 modern pipeline — **PBR materials with image-based lighting, CC0 textured
 ground/stone/wood surfaces, real-time shadow maps, ACES filmic tone mapping,
-and a bloom post-processing pass** for the Stormlight glow — over a transparent
-2D Canvas that paints the HUD and text.
+a bloom pass for the Stormlight glow, drifting atmospheric motes, and a
+cinematic vignette** — over a transparent 2D Canvas that paints the HUD and
+text.
 Characters are **rigged, animated glTF models** (a CC0 asset, cloned per figure)
 that idle, walk, and turn to face their heading, under a cinematic three-quarter
 chase camera. Where WebGL isn't available the game **falls back to the original

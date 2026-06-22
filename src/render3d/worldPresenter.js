@@ -107,6 +107,11 @@ export class WorldPresenter {
       dust.position.set(map.width / 2, -140, map.height / 2);
       this.three.add(dust);
     }
+
+    // Atmospheric motes drifting through the air above the field; recentred on
+    // the player each frame so they always surround on large maps.
+    this._motes = makeParticles(150, COLORS.glow, { x: 1300, y: 280, z: 1300 }, 3, 0.16);
+    this.three.add(this._motes);
   }
 
   // --- entities ----------------------------------------------------------------
@@ -257,7 +262,10 @@ export class WorldPresenter {
       this.three.add(slash);
       const rig = new CharacterRig({ height: 44 });
       fig.add(rig.root);
-      this._player = { fig, glow, slash, rig, capsule, lastPos: new THREE.Vector3() };
+      // Stormlight aura: motes that swirl up off the body when infused/dashing.
+      const slPart = makeParticles(44, COLORS.glow, { x: 30, y: 54, z: 30 }, 4, 0.0);
+      fig.add(slPart);
+      this._player = { fig, glow, slash, rig, slPart, capsule, lastPos: new THREE.Vector3() };
       this.three.add(fig);
     }
     const p = this._player;
@@ -279,6 +287,8 @@ export class WorldPresenter {
     const dashGlow = scene.dashTimer > 0 ? 0.9 : 0;
     p.glow.material.opacity = Math.max(dashGlow, sl.infused ? 0.25 + 0.45 * sl.fraction : 0);
     p.glow.scale.setScalar(48 + 30 * sl.fraction + (scene.dashTimer > 0 ? 26 : 0));
+    p.slPart.material.opacity = Math.max(scene.dashTimer > 0 ? 0.75 : 0, sl.infused ? 0.45 * sl.fraction : 0);
+    p.slPart.rotation.y += dt * 1.6;
     p.fig.userData.material.emissive.setHex(
       scene.hitFlash > 0 ? COLORS.red : sl.infused ? 0x2c5c8f : p.fig.userData.baseEmissive
     );
@@ -309,6 +319,13 @@ export class WorldPresenter {
       this._sun.position.set(tx + 320, 640, tz + 240);
       this._sun.target.position.set(tx, 0, tz);
       this._sun.target.updateMatrixWorld();
+    }
+
+    // Ambient motes follow the player and drift slowly for a sense of air.
+    if (this._motes) {
+      this._motes.position.set(tx, 70, tz);
+      this._motes.rotation.y += dt * 0.04;
+      this._motes.position.y += Math.sin(this._t * 0.3) * 6;
     }
 
     // A lower, closer three-quarter chase than a flat top-down — more cinematic.
