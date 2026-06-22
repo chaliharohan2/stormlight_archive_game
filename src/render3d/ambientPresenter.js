@@ -42,10 +42,10 @@ export class AmbientPresenter {
     this._built = true;
     this.three.background = new THREE.Color(COLORS.bgDeep);
     this.three.fog = new THREE.Fog(COLORS.bgDeep, 600, 1800);
-    addLights(this.three, { ambient: 0.5, sun: 0.6 });
+    addLights(this.three, { ambient: 0.6, sun: 1.5, shadows: 0 });
 
     // Broken stone plain: scattered slabs at slight tilts.
-    const slabMat = new THREE.MeshLambertMaterial({ color: COLORS.stone });
+    const slabMat = new THREE.MeshStandardMaterial({ color: COLORS.stone });
     for (let i = 0; i < 26; i++) {
       const w = 60 + (i * 37) % 90;
       const slab = new THREE.Mesh(new THREE.BoxGeometry(w, 14 + (i * 13) % 18, w), slabMat);
@@ -64,7 +64,7 @@ export class AmbientPresenter {
       const color = i % 3 === 0 ? COLORS.gold : i % 3 === 1 ? COLORS.blue : COLORS.amethyst;
       const orb = new THREE.Mesh(
         new THREE.SphereGeometry(6, 10, 10),
-        new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.7 })
+        new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.7 })
       );
       group.add(orb, makeGlow(color, 50, 0.7));
       const ang = i * 0.9;

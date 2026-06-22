@@ -7,11 +7,17 @@ Bridge Four's charge at the Tower.
 
 Built **from scratch with no build step and no framework**: vanilla JavaScript
 ES modules, rendered with [Three.js](https://threejs.org/) (vendored in
-`vendor/`, no install or bundler required). The world is drawn procedurally in
-WebGL — extruded stone, glowing spheres, Stormlight, figures that follow a
-three-quarter camera — over a transparent 2D Canvas that paints the HUD and
-text. Where WebGL isn't available the game **falls back to the original pure-2D
-renderer** automatically, so it still runs (and tests) anywhere.
+`vendor/`, no install or bundler required). The world is drawn in WebGL with a
+modern pipeline — **PBR materials with image-based lighting, CC0 textured
+ground/stone/wood surfaces, real-time shadow maps, ACES filmic tone mapping,
+a bloom pass for the Stormlight glow, drifting atmospheric motes, and a
+cinematic vignette** — over a transparent 2D Canvas that paints the HUD and
+text.
+Characters are **rigged, animated glTF models** (a CC0 asset, cloned per figure)
+that idle, walk, and turn to face their heading, under a cinematic three-quarter
+chase camera. Where WebGL isn't available the game **falls back to the original
+pure-2D renderer** automatically, so it still runs (and tests) anywhere; while a
+model is still streaming in, a lightweight capsule stand-in is shown.
 
 ---
 
@@ -86,10 +92,17 @@ src/
   scenes/      Concrete scenes: world, dialogue, narration, menu, game-over,
                and the three minigame scenes
   render3d/    The 3D layer: one "presenter" per scene type that mirrors the
-               scene's plain logic state into a Three.js scene graph each frame
+               scene's plain logic state into a Three.js scene graph each frame,
+               plus characterRig.js (animated glTF figures) and texturePack.js
+               (cached PBR materials)
   content/     The campaign (characters.js, campaign.js)
   main.js      Browser entry point
-vendor/          Vendored Three.js (no npm install / bundler needed)
+vendor/          Vendored Three.js + the addons used at runtime
+  three.module.js, three.core.js
+  jsm/           EffectComposer/bloom, GLTFLoader, SkeletonUtils, RoomEnvironment
+assets/
+  models/        CC0 glTF character model(s)
+  textures/      CC0 PBR texture sets (albedo / normal / roughness)
 tools/
   serve.js        zero-dep static file server
   verify-ui.mjs   Playwright UI smoke test (checks both render layers)
@@ -110,7 +123,7 @@ stays fully playable and testable without a GPU.
 npm test
 ```
 
-Runs the full suite with Node's built-in test runner — **128 tests** covering
+Runs the full suite with Node's built-in test runner — **137 tests** covering
 the core logic plus integration tests that drive the _real_ game loop through:
 
 - a sphere pickup and a real melee kill,
@@ -134,3 +147,8 @@ npm run verify:ui                                        # writes tools/screensh
 A fan project built for learning and love of the books. _The Stormlight Archive_
 and all its characters are the creation of **Brandon Sanderson**. No copyright
 infringement intended; not for sale.
+
+The character model (`assets/models/soldier.glb`) is the **Soldier** asset by
+Tomás Laulhé, modified by Don McCurdy, released under **CC0** (public domain) and
+distributed with the three.js examples. The ground/stone/wood textures in
+`assets/textures/` are **CC0** material sets from [Poly Haven](https://polyhaven.com/).

@@ -75,13 +75,21 @@ export function makeGlow(color, scale = 40, opacity = 0.8) {
  */
 export function makeFigure(color, { height = 34, radius = 9 } = {}) {
   const group = new THREE.Group();
-  const base = new THREE.Color(color).multiplyScalar(0.3);
-  const mat = new THREE.MeshLambertMaterial({ color, emissive: base });
+  const base = new THREE.Color(color).multiplyScalar(0.18);
+  const mat = new THREE.MeshStandardMaterial({
+    color,
+    emissive: base,
+    roughness: 0.62,
+    metalness: 0.08,
+  });
   const bodyLen = Math.max(2, height - radius * 2 - 6);
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(radius, bodyLen, 3, 8), mat);
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(radius, bodyLen, 6, 14), mat);
   body.position.y = radius + bodyLen / 2;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.62, 8, 8), mat);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.62, 16, 14), mat);
   head.position.y = radius + bodyLen + radius * 0.62 + 1;
+  head.castShadow = true;
   group.add(body, head);
   group.userData.material = mat;
   group.userData.baseEmissive = base.getHex();
@@ -94,7 +102,7 @@ export function makeBlobShadow(radius = 11) {
     map: glowTexture(),
     color: 0x000000,
     transparent: true,
-    opacity: 0.4,
+    opacity: 0.22,
     depthWrite: false,
   });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(radius * 2, radius * 2), mat);
@@ -103,12 +111,33 @@ export function makeBlobShadow(radius = 11) {
   return m;
 }
 
-/** Standard lighting rig shared by most presenters. */
-export function addLights(scene, { ambient = 1.1, sun = 1.3, sunColor = 0xbfd8ff } = {}) {
-  scene.add(new THREE.AmbientLight(0x8090b0, ambient));
+/**
+ * Standard lighting rig shared by most presenters: a soft hemisphere fill plus
+ * a shadow-casting directional "sun". With an environment map and ACES tone
+ * mapping doing the heavy lifting, the direct lights stay restrained.
+ * `shadows` sizes the orthographic shadow frustum; presenters that follow the
+ * player reposition the returned light so the frustum tracks the action.
+ */
+export function addLights(scene, { ambient = 0.55, sun = 2.1, sunColor = 0xfff1d6, shadows = 700 } = {}) {
+  scene.add(new THREE.HemisphereLight(0xbcd0ff, 0x2a2536, ambient));
   const dir = new THREE.DirectionalLight(sunColor, sun);
-  dir.position.set(300, 600, 200);
+  dir.position.set(320, 640, 240);
+  if (shadows) {
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(2048, 2048);
+    dir.shadow.bias = -0.0006;
+    dir.shadow.normalBias = 2;
+    const cam = dir.shadow.camera;
+    cam.near = 50;
+    cam.far = 2200;
+    cam.left = -shadows;
+    cam.right = shadows;
+    cam.top = shadows;
+    cam.bottom = -shadows;
+    cam.updateProjectionMatrix();
+  }
   scene.add(dir);
+  scene.add(dir.target);
   return dir;
 }
 
